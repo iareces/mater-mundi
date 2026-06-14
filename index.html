@@ -4055,15 +4055,16 @@ async function cmsDeletePage(slug) {
 async function loadAdmCMS() {
   var l = document.getElementById('admCMSList');
   if(!l) return;
-  await cmsLoadPages();
-  l.innerHTML = '';
 
-  // Button to create new page
+  // Crear botón ANTES del await para que sea inmediatamente clickable
+  l.innerHTML = '';
   var addBtn = document.createElement('button');
   addBtn.className = 'btn-add';
   addBtn.innerHTML = '+ Nueva pestaña/página';
   addBtn.onclick = function(){ cmsOpenPageModal(null); };
   l.appendChild(addBtn);
+
+  await cmsLoadPages();
 
   cmsPages.forEach(function(p) {
     var row = document.createElement('div');
