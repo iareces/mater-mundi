@@ -625,10 +625,10 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <!-- INICIO -->
     <div class="adm-sec" id="aInicio">
       <p style="font-size:11px;color:var(--gris);margin-bottom:12px">Edita los textos y elementos de la pantalla de inicio</p>
-      <div class="mfg"><label>Subtítulo hero</label><input type="text" id="cfgHeroSub" placeholder="Testimonios · Formación · Evangelización"/></div>
-      <div class="mfg"><label>Suscriptores YouTube (ej: 376K)</label><input type="text" id="cfgYtSubs" placeholder="376K"/></div>
-      <div class="mfg"><label>Seguidores Instagram</label><input type="text" id="cfgIgSubs" placeholder="35K"/></div>
-      <div class="mfg"><label>Seguidores Facebook</label><input type="text" id="cfgFbSubs" placeholder="13K"/></div>
+      <div class="mfg"><label>Subtítulo hero</label><input type="text" id="iniHeroSub" placeholder="Testimonios · Formación · Evangelización"/></div>
+      <div class="mfg"><label>Suscriptores YouTube (ej: 376K)</label><input type="text" id="iniYtSubs" placeholder="376K"/></div>
+      <div class="mfg"><label>Seguidores Instagram</label><input type="text" id="iniIgSubs" placeholder="35K"/></div>
+      <div class="mfg"><label>Seguidores Facebook</label><input type="text" id="iniFbSubs" placeholder="13K"/></div>
       <button class="btn-pri" onclick="guardarInicio()">💾 Guardar cambios de inicio</button>
     </div>
 
@@ -650,7 +650,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <button class="btn-pri" onclick="guardarConfig()">💾 Guardar configuración</button>
     </div>
     <!-- ══ CMS ══ -->
-    <div class="adm-sec" id="aCMS">
+    <div class="adm-sec" id="aCMS" onclick="cmsHandleClick(event)">
       <p style="font-size:11px;color:var(--gris,#5a6a85);margin-bottom:10px">Gestiona las pestañas de navegación y su contenido</p>
       <div id="admCMSList"></div>
     </div>
@@ -3413,10 +3413,176 @@ async function delOr(id) {
   toast('Eliminado ✓'); loadAdmOr();
 }
 
+// ── darAcceso manual ──
+async function darAcceso() {
+  if(!sb) return toast('Supabase no configurado');
+  var email = (document.getElementById('uEmail')||{value:''}).value.trim();
+  var cursoId = (document.getElementById('uCurso')||{value:''}).value;
+  if(!email) return toast('Introduce el email del usuario');
+  if(!cursoId) return toast('Selecciona un curso');
+  // Buscar usuario por email en auth (usando admin via service key no es posible desde cliente)
+  // Guardamos por email como referencia manual
+  var r = await sb.from('accesos_curso').upsert({
+    user_id: email, curso_id: cursoId, pagado: true
+  }, {onConflict: 'user_id,curso_id'});
+  if(r.error) return toast('Error: '+r.error.message);
+  toast('✅ Acceso concedido a '+email);
+  loadAdmUsers();
+}
+
+// ── guardarInicio ──
+async function guardarInicio() {
+  if(!sb) return toast('Supabase no configurado');
+  var pares = [
+    ['app_subtitulo', (document.getElementById('iniHeroSub')||{value:''}).value.trim()],
+    ['yt_subs',       (document.getElementById('iniYtSubs')||{value:''}).value.trim()],
+    ['ig_subs',       (document.getElementById('iniIgSubs')||{value:''}).value.trim()],
+    ['fb_subs',       (document.getElementById('iniFbSubs')||{value:''}).value.trim()],
+  ].filter(function(p){return p[1];});
+  for(var i=0;i<pares.length;i++) {
+    await sb.from('config').upsert({clave:pares[i][0], valor:pares[i][1]},{onConflict:'clave'});
+  }
+  toast('Inicio actualizado ✓');
+  loadLinks(); // refresca stats
+}
+
+// ── openMNoticia / saveNoticia / loadAdmNoticias ──
+function openMNoticia(n) {
+  var mo = document.getElementById('moFNoticia'); if(!mo) return;
+  document.getElementById('nId').value = n ? n.id||'' : '';
+  document.getElementById('nTit').value = n ? n.titulo||'' : '';
+  document.getElementById('nRes').value = n ? n.resumen||'' : '';
+  document.getElementById('nUrl').value = n ? n.url||'' : '';
+  document.getElementById('nImg').value = n ? n.imagen_url||'' : '';
+  var cat = document.getElementById('nCat'); if(cat && n) cat.value = n.categoria||'actualidad';
+  var dest = document.getElementById('nDest'); if(dest) dest.checked = n ? !!n.destacada : false;
+  var tit = document.getElementById('moNoticiaT');
+  if(tit) tit.childNodes[0] && (tit.childNodes[0].textContent = (n ? 'Editar' : 'Nueva') + ' noticia ');
+  mo.classList.add('open');
+}
+async function saveNoticia() {
+  if(!sb) return toast('Supabase no configurado');
+  var id = document.getElementById('nId').value;
+  var titulo = document.getElementById('nTit').value.trim();
+  if(!titulo) return toast('El título es obligatorio');
+  var payload = {
+    titulo: titulo,
+    resumen: document.getElementById('nRes').value.trim(),
+    url: document.getElementById('nUrl').value.trim(),
+    imagen_url: document.getElementById('nImg').value.trim(),
+    categoria: document.getElementById('nCat').value,
+    destacada: document.getElementById('nDest').checked,
+    activo: true
+  };
+  var r = id ? await sb.from('noticias').update(payload).eq('id',id)
+              : await sb.from('noticias').insert(payload);
+  if(r.error) return toast('Error: '+r.error.message);
+  toast(id ? 'Noticia actualizada ✓' : 'Noticia creada ✓');
+  document.getElementById('moFNoticia').classList.remove('open');
+  loadAdmNoticias();
+  loadNoticias(); // refrescar portada
+}
+
+// ── guardarConfig (panel aConfig) ──
+async function guardarConfig() {
+  if(!sb) return toast('Supabase no configurado');
+  var pares = [
+    ['app_subtitulo', (document.getElementById('cfgLema')||{value:''}).value.trim()],
+    ['yt_subs',       (document.getElementById('cfgYtSubs')||{value:''}).value.trim()],
+    ['ig_subs',       (document.getElementById('cfgIgSubs')||{value:''}).value.trim()],
+    ['fb_subs',       (document.getElementById('cfgFbSubs')||{value:''}).value.trim()],
+  ].filter(function(p){return p[1];});
+  for(var i=0;i<pares.length;i++){
+    await sb.from('config').upsert({clave:pares[i][0],valor:pares[i][1]},{onConflict:'clave'});
+  }
+  toast('Configuración guardada ✓');
+  loadLinks();
+}
+
+// ── compartirApp ──
+function compartirApp() {
+  var msg = '✝️ Mater Mundi TV — Testimonios, formación y evangelización
+https://mater-mundi.netlify.app';
+  if(navigator.share) {
+    navigator.share({title:'Mater Mundi TV', text:'Testimonios, formación y evangelización católica', url:'https://mater-mundi.netlify.app'});
+  } else {
+    navigator.clipboard.writeText(msg).then(function(){ toast('¡Enlace copiado! 📋'); }).catch(function(){ toast(msg); });
+  }
+}
+
 // ── STUBS ──
-function loadAdmUsers()    { var l=document.getElementById('admUsrList');  if(l) admEmpty(l,'👥','Gestión de usuarios próximamente'); }
-function loadAdmNoticias() { var l=document.getElementById('admNotList');  if(l) admEmpty(l,'📰','Las noticias se cargan de matermundi.tv automáticamente'); }
-function loadAdmInicio()   { var l=document.getElementById('admIniList');  if(l) admEmpty(l,'🏠','Configuración de inicio próximamente'); }
+async function loadAdmUsers() {
+  // aUsuarios usa accesosLista + uEmail + uCurso — cargar accesos concedidos y cursos disponibles
+  if(!sb) return;
+  // Cargar cursos en el select
+  var sel = document.getElementById('uCurso');
+  if(sel && sel.options.length <= 1) {
+    var rc = await sb.from('videos').select('id,nombre').eq('activo',true).eq('seccion','formacion');
+    var ri = await sb.from('itinerarios').select('id,nombre').eq('activo',true);
+    if(rc.data) rc.data.forEach(function(c){ var o=document.createElement('option');o.value=c.id;o.textContent='🎓 '+c.nombre;sel.appendChild(o); });
+    if(ri.data) ri.data.forEach(function(c){ var o=document.createElement('option');o.value=c.id;o.textContent='🗺️ '+c.nombre;sel.appendChild(o); });
+  }
+  // Cargar accesos concedidos
+  var l = document.getElementById('accesosLista');
+  if(!l) return;
+  l.innerHTML = '<div class="spin">Cargando…</div>';
+  var r = await sb.from('accesos_curso').select('*').order('created_at',{ascending:false}).limit(50);
+  if(!r.data || !r.data.length) { l.innerHTML='<p style="font-size:12px;color:var(--gris);padding:10px 0">Sin accesos concedidos todavía</p>'; return; }
+  l.innerHTML = '';
+  r.data.forEach(function(a) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--borde);font-size:12px';
+    row.innerHTML = '<span style="color:var(--azul-os)">' + esc(a.user_id ? a.user_id.substring(0,8)+'…' : '—') + '</span>'
+      + '<span style="color:var(--gris)">' + esc(a.curso_id ? a.curso_id.substring(0,8)+'…' : '—') + '</span>'
+      + '<span style="color:' + (a.pagado?'#27ae60':'var(--gris)') + ';font-weight:600">' + (a.pagado?'✅ Pagado':'⏳ Pendiente') + '</span>';
+    l.appendChild(row);
+  });
+}
+async function loadAdmNoticias() {
+  var l = document.getElementById('admNList'); if(!l) return;
+  if(!sb) { admEmpty(l,'📰','Supabase no configurado'); return; }
+  l.innerHTML = '<div class="spin">Cargando…</div>';
+  var r = await sb.from('noticias').select('*').order('created_at',{ascending:false}).limit(50);
+  if(r.error) { admEmpty(l,'⚠️',r.error.message); return; }
+  if(!r.data||!r.data.length) { admEmpty(l,'📰','Sin noticias todavía'); return; }
+  l.innerHTML = '';
+  r.data.forEach(function(n) {
+    var row = document.createElement('div');
+    row.className = 'adm-row';
+    row.innerHTML = '<div style="flex:1;min-width:0"><p style="font-size:13px;font-weight:600;color:var(--azul-os);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + (n.destacada?'⭐ ':'') + esc(n.titulo) + '</p>'
+      + '<small style="font-size:10px;color:var(--gris)">' + (n.categoria||'') + ' · ' + new Date(n.created_at).toLocaleDateString('es') + '</small></div>';
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:5px;flex-shrink:0';
+    var eb = document.createElement('button');
+    eb.innerHTML = '✏️';
+    eb.style.cssText = 'background:rgba(30,123,196,0.12);color:#1A3A6E;border:none;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer';
+    eb.onclick = (function(nn){ return function(){ openMNoticia(nn); }; })(n);
+    var db = document.createElement('button');
+    db.innerHTML = '🗑️';
+    db.style.cssText = 'background:rgba(192,57,43,0.12);color:#C0392B;border:none;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer';
+    db.onclick = (function(id){ return function(){
+      if(!confirm('¿Eliminar noticia?')) return;
+      sb.from('noticias').delete().eq('id',id).then(function(){ toast('Eliminada ✓'); loadAdmNoticias(); loadNoticias(); });
+    }; })(n.id);
+    btns.appendChild(eb); btns.appendChild(db);
+    row.appendChild(btns);
+    l.appendChild(row);
+  });
+}
+async function loadAdmInicio() {
+  // Cargar config actual en los campos del panel Inicio
+  if(!sb) return;
+  var r = await sb.from('config').select('*');
+  if(!r.data) return;
+  var cfg = {};
+  r.data.forEach(function(x){ cfg[x.clave] = x.valor; });
+  var map = { iniHeroSub:'app_subtitulo', iniYtSubs:'yt_subs', iniIgSubs:'ig_subs', iniFbSubs:'fb_subs' };
+  Object.keys(map).forEach(function(elId){
+    var el = document.getElementById(elId);
+    if(el && cfg[map[elId]]) el.value = cfg[map[elId]];
+  });
+}
 
 async function loadAdmConfig() {
   if(!sb) return;
@@ -3643,7 +3809,41 @@ function chkAdm() {
   } else toast('Contraseña incorrecta');
 }
 
-function abrirComentarios() { toast('Comentarios próximamente'); }
+function abrirComentarios(videoId, videoTitulo) {
+  var mo = document.getElementById('moComentarios');
+  if(!mo) return;
+  // Guardar videoId en el modal para usarlo al enviar
+  mo.dataset.videoId = videoId || '';
+  var tit = document.getElementById('comVideoTit');
+  if(tit) tit.textContent = videoTitulo || 'Comentarios';
+  // Mostrar form o mensaje de login
+  var comForm = document.getElementById('comForm');
+  var comAuthMsg = document.getElementById('comAuthMsg');
+  if(currentUser) {
+    if(comForm) comForm.classList.remove('hid');
+    if(comAuthMsg) comAuthMsg.classList.add('hid');
+  } else {
+    if(comForm) comForm.classList.add('hid');
+    if(comAuthMsg) comAuthMsg.classList.remove('hid');
+  }
+  // Cargar comentarios existentes
+  var lista = document.getElementById('comentariosList');
+  if(lista && sb) {
+    lista.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--gris)">Cargando…</div>';
+    sb.from('comentarios').select('*').eq('video_id', videoId).eq('aprobado', true).order('created_at', {ascending:false}).limit(30).then(function(r) {
+      if(!r.data || !r.data.length) { lista.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px 0;text-align:center">Sin comentarios todavía. ¡Sé el primero!</p>'; return; }
+      lista.innerHTML = '';
+      r.data.forEach(function(c) {
+        var d = document.createElement('div');
+        d.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--borde)';
+        d.innerHTML = '<p style="font-size:12px;font-weight:600;color:var(--azul-os);margin-bottom:3px">' + esc(c.nombre||'Anónimo') + ' <span style="font-size:10px;color:var(--gris);font-weight:400">' + new Date(c.created_at).toLocaleDateString('es') + '</span></p>'
+          + '<p style="font-size:13px;color:var(--texto);line-height:1.5">' + esc(c.texto) + '</p>';
+        lista.appendChild(d);
+      });
+    });
+  }
+  mo.classList.add('open');
+}
 
 // ── modal helpers ──
 function openMo(id){ var el=document.getElementById(id); if(el) el.classList.add('open'); }
@@ -3728,6 +3928,19 @@ var cmsPages = [];        // páginas cargadas de Supabase
 var cmsBloques = {};      // { slug: [bloques] }
 var cmsEditPage = null;   // página en edición
 var cmsEditBloque = null; // bloque en edición
+
+// ── CMS event handler (delegation) ──
+function cmsHandleClick(e) {
+  var el = e.target;
+  if(el.classList.contains('btn-add')) { cmsOpenPageModal(null); return; }
+  if(el.dataset.cmsEdit) {
+    var page = cmsPages.find(function(p){ return p.slug === el.dataset.cmsEdit; });
+    if(page) cmsOpenPageModal(page);
+    return;
+  }
+  if(el.dataset.cmsView) { navTo(el.dataset.cmsView); return; }
+  if(el.dataset.cmsDel)  { cmsDeletePage(el.dataset.cmsDel); return; }
+}
 
 // ── Cargar páginas desde Supabase ──
 async function cmsLoadPages() {
@@ -4078,21 +4291,21 @@ async function loadAdmCMS() {
 
     var eb = document.createElement('button');
     eb.innerHTML = '✏️';
+    eb.dataset.cmsEdit = p.slug;
     eb.style.cssText = 'background:rgba(30,123,196,0.12);color:#1A3A6E;border:none;border-radius:6px;padding:6px 9px;font-size:13px;cursor:pointer';
-    eb.onclick = (function(page){ return function(){ cmsOpenPageModal(page); }; })(p);
 
     var vb = document.createElement('button');
     vb.innerHTML = '👁️';
+    vb.dataset.cmsView = p.slug;
     vb.style.cssText = 'background:rgba(30,123,196,0.12);color:#1A3A6E;border:none;border-radius:6px;padding:6px 9px;font-size:13px;cursor:pointer';
-    vb.onclick = (function(slug){ return function(){ navTo(slug); }; })(p.slug);
 
     btns.appendChild(eb); btns.appendChild(vb);
 
     if(!p.fija) {
       var db = document.createElement('button');
       db.innerHTML = '🗑️';
+      db.dataset.cmsDel = p.slug;
       db.style.cssText = 'background:rgba(192,57,43,0.12);color:#C0392B;border:none;border-radius:6px;padding:6px 9px;font-size:13px;cursor:pointer';
-      db.onclick = (function(slug){ return function(){ cmsDeletePage(slug); }; })(p.slug);
       btns.appendChild(db);
     }
 
@@ -4176,17 +4389,23 @@ async function loadAdmPeticiones() {
 
 // ── Enviar comentario (público) ──
 async function enviarComentario(videoId) {
-  var nombre = (document.getElementById('comNombre')||{value:''}).value.trim();
-  var texto  = (document.getElementById('comTexto')||{value:''}).value.trim();
+  // Si no se pasa videoId, leerlo del modal
+  if(!videoId) {
+    var mo = document.getElementById('moComentarios');
+    videoId = mo ? mo.dataset.videoId || '' : '';
+  }
+  var texto = (document.getElementById('comTexto')||{value:''}).value.trim();
   if(!texto) return toast('Escribe un comentario');
   if(!sb) return toast('Supabase no configurado');
-  var payload = { video_id: videoId, texto: texto, nombre: nombre||'Anónimo', aprobado: false };
+  var nombre = currentUser ? (currentUser.user_metadata && currentUser.user_metadata.nombre) || currentUser.email : 'Anónimo';
+  var payload = { video_id: videoId, texto: texto, nombre: nombre, aprobado: false };
   if(currentUser) payload.user_id = currentUser.id;
   var r = await sb.from('comentarios').insert(payload);
   if(r.error) return toast('Error: '+r.error.message);
   toast('¡Comentario enviado! Aparecerá tras aprobación ✓');
-  var f = document.getElementById('comNombre'); if(f) f.value='';
-  var t = document.getElementById('comTexto');  if(t) t.value='';
+  var t = document.getElementById('comTexto'); if(t) t.value='';
+  // Recargar lista
+  abrirComentarios(videoId, document.getElementById('comVideoTit') ? document.getElementById('comVideoTit').textContent : '');
 }
 
 // ── Enviar petición de oración ──
