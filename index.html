@@ -559,6 +559,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <div class="adm-t" onclick="admTab(this,'aComentarios')">💬 Comentarios</div>
       <div class="adm-t" onclick="admTab(this,'aPeticiones')">🙏 Peticiones</div>
       <div class="adm-t" onclick="admTab(this,'aConfig')">⚙️ Config</div>
+      <div class="adm-t" onclick="admTab(this,'aCMS')">🗂️ CMS</div>
     </div>
     <div class="adm-sec on" id="aVids">
       <p style="font-size:11px;color:var(--gris);margin-bottom:8px">YouTube, vídeo, audio, imagen, PDF, texto, enlace</p>
@@ -1036,6 +1037,12 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <button class="btn-sav" onclick="saveOracion()">💾 Guardar</button>
     </div>
   </div>
+
+    <!-- ══ CMS ══ -->
+    <div class="adm-sec" id="aCMS">
+      <p style="font-size:11px;color:var(--gris,#5a6a85);margin-bottom:10px">Gestiona las pestañas de navegación y su contenido</p>
+      <div id="admCMSList"></div>
+    </div>
 </div>
 
 
@@ -2140,6 +2147,9 @@ function navTo(p){
   if(p==='agenda') loadEventos();
   if(p==='admin') loadAdmVids();
   if(p==='links') loadLinks();
+  // CMS dynamic pages
+  var cmsPage = cmsPages.find(function(pg){return pg.slug===p;});
+  if(cmsPage) cmsRenderPage(p);
   window.scrollTo(0,0);
 }
 
@@ -3407,8 +3417,6 @@ async function delOr(id) {
 function loadAdmUsers()    { var l=document.getElementById('admUsrList');  if(l) admEmpty(l,'👥','Gestión de usuarios próximamente'); }
 function loadAdmNoticias() { var l=document.getElementById('admNotList');  if(l) admEmpty(l,'📰','Las noticias se cargan de matermundi.tv automáticamente'); }
 function loadAdmInicio()   { var l=document.getElementById('admIniList');  if(l) admEmpty(l,'🏠','Configuración de inicio próximamente'); }
-function loadAdmComentarios(){ var l=document.getElementById('admComList');if(l) admEmpty(l,'💬','Sin comentarios pendientes'); }
-function loadAdmPeticiones(){ var l=document.getElementById('admPetList'); if(l) admEmpty(l,'🙏','Sin peticiones pendientes'); }
 
 async function loadAdmConfig() {
   if(!sb) return;
@@ -3620,7 +3628,8 @@ function admTab(el, tab) {
     aEventos:loadAdmEvs, aLinks:loadLinks, aEvang:loadAdmRec,
     aOracion:loadAdmOr, aUsuarios:loadAdmUsers, aConfig:loadAdmConfig,
     aNoticias:loadAdmNoticias, aInicio:loadAdmInicio,
-    aComentarios:loadAdmComentarios, aPeticiones:loadAdmPeticiones
+    aComentarios:loadAdmComentarios, aPeticiones:loadAdmPeticiones,
+    aCMS:loadAdmCMS
   };
   if(map[tab]) map[tab]();
 }
@@ -3709,6 +3718,592 @@ function togglePasoRecurso() {
   }
 }
 
+
+// ════════════════════════════════════════════════════════════
+// CMS — gestión completa de páginas, bloques y contenido
+// ════════════════════════════════════════════════════════════
+
+// ── Estado CMS ──
+var cmsPages = [];        // páginas cargadas de Supabase
+var cmsBloques = {};      // { slug: [bloques] }
+var cmsEditPage = null;   // página en edición
+var cmsEditBloque = null; // bloque en edición
+
+// ── Cargar páginas desde Supabase ──
+async function cmsLoadPages() {
+  if(!sb) return;
+  try {
+    var r = await sb.from('cms_pages').select('*').eq('activo', true).order('orden');
+    if(r.data && r.data.length) {
+      cmsPages = r.data;
+      cmsRenderNav();
+    }
+  } catch(e) { console.log('CMS pages:', e.message); }
+}
+
+// ── Renderizar nav dinámico ──
+function cmsRenderNav() {
+  var nav = document.getElementById('navDynamic');
+  if(!nav) return;
+  nav.innerHTML = '';
+  cmsPages.forEach(function(p) {
+    var ni = document.createElement('div');
+    ni.className = 'ni';
+    ni.id = 'nv-' + p.slug;
+    ni.innerHTML = '<span class="ico">' + (p.icono||'📄') + '</span><span>' + p.titulo + '</span>';
+    ni.onclick = (function(slug){ return function(){ navTo(slug); }; })(p.slug);
+    nav.appendChild(ni);
+  });
+}
+
+// ── Cargar bloques de una página ──
+async function cmsLoadBloques(slug) {
+  if(!sb) return [];
+  try {
+    var r = await sb.from('cms_bloques').select('*').eq('page_slug', slug).eq('activo', true).order('orden');
+    cmsBloques[slug] = r.data || [];
+    return cmsBloques[slug];
+  } catch(e) { return []; }
+}
+
+// ── Renderizar bloques en una página ──
+async function cmsRenderPage(slug) {
+  var pg = document.getElementById('pg-' + slug);
+  if(!pg) return;
+  var contenedor = pg.querySelector('.cms-content');
+  if(!contenedor) return;
+
+  var bloques = await cmsLoadBloques(slug);
+
+  if(adminModeActive) {
+    // Botón añadir bloque
+    var addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.style.cssText = 'margin:10px 14px;';
+    addBtn.innerHTML = '+ Añadir bloque';
+    addBtn.onclick = function(){ cmsOpenBloqueModal(null, slug); };
+    contenedor.innerHTML = '';
+    contenedor.appendChild(addBtn);
+  } else {
+    contenedor.innerHTML = '';
+  }
+
+  if(!bloques.length && !adminModeActive) {
+    contenedor.innerHTML = '<div class="empty" style="padding:40px 14px"><p style="color:var(--gris)">Contenido próximamente</p></div>';
+    return;
+  }
+
+  bloques.forEach(function(b) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:16px;position:relative';
+
+    var el = cmsRenderBloque(b);
+    wrap.appendChild(el);
+
+    if(adminModeActive) {
+      var bar = document.createElement('div');
+      bar.style.cssText = 'display:flex;gap:5px;padding:4px 14px';
+      var editB = document.createElement('button');
+      editB.innerHTML = '✏️ Editar';
+      editB.style.cssText = 'flex:1;background:var(--azul,#1A3A6E);color:#fff;border:none;border-radius:6px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit';
+      editB.onclick = (function(bloque, s){ return function(){ cmsOpenBloqueModal(bloque, s); }; })(b, slug);
+      var upB = document.createElement('button');
+      upB.innerHTML = '↑';
+      upB.style.cssText = 'background:rgba(30,123,196,0.1);color:var(--azul,#1A3A6E);border:none;border-radius:6px;padding:7px 10px;font-size:13px;cursor:pointer';
+      upB.onclick = (function(id, s){ return function(){ cmsMoveBloque(id, s, -1); }; })(b.id, slug);
+      var dnB = document.createElement('button');
+      dnB.innerHTML = '↓';
+      dnB.style.cssText = 'background:rgba(30,123,196,0.1);color:var(--azul,#1A3A6E);border:none;border-radius:6px;padding:7px 10px;font-size:13px;cursor:pointer';
+      dnB.onclick = (function(id, s){ return function(){ cmsMoveBloque(id, s, 1); }; })(b.id, slug);
+      var delB = document.createElement('button');
+      delB.innerHTML = '🗑️';
+      delB.style.cssText = 'background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:7px 10px;font-size:13px;cursor:pointer';
+      delB.onclick = (function(id, s){ return function(){
+        if(!confirm('¿Eliminar este bloque?')) return;
+        sb.from('cms_bloques').delete().eq('id',id).then(function(){ cmsRenderPage(s); });
+      }; })(b.id, slug);
+      bar.appendChild(editB); bar.appendChild(upB); bar.appendChild(dnB); bar.appendChild(delB);
+      wrap.appendChild(bar);
+    }
+
+    contenedor.appendChild(wrap);
+  });
+
+  // In admin mode, add "nueva página" button at bottom
+  if(adminModeActive) {
+    var sep = document.createElement('div');
+    sep.style.cssText = 'border-top:1px dashed var(--borde,#dde3f0);margin:16px 14px 0;padding-top:10px';
+    var pgBtn = document.createElement('button');
+    pgBtn.innerHTML = '⚙️ Configurar esta página';
+    pgBtn.style.cssText = 'width:100%;background:rgba(30,123,196,0.08);color:var(--azul,#1A3A6E);border:1px solid rgba(30,123,196,0.2);border-radius:8px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit';
+    pgBtn.onclick = (function(s){ return function(){ cmsOpenPageModal(cmsPages.find(function(p){return p.slug===s;})); }; })(slug);
+    sep.appendChild(pgBtn);
+    contenedor.appendChild(sep);
+  }
+}
+
+// ── Renderizar un bloque según tipo ──
+function cmsRenderBloque(b) {
+  var el = document.createElement('div');
+
+  switch(b.tipo) {
+    case 'texto':
+      el.style.cssText = 'padding:0 14px';
+      if(b.titulo) el.innerHTML += '<h3 style="font-family:Playfair Display,serif;font-size:20px;color:var(--azul-os,#1A3A6E);margin-bottom:8px">' + esc(b.titulo) + '</h3>';
+      if(b.contenido) el.innerHTML += '<p style="font-size:14px;color:var(--texto,#0d1b2e);line-height:1.7;white-space:pre-wrap">' + esc(b.contenido) + '</p>';
+      break;
+
+    case 'youtube':
+      var yid = ytId(b.url);
+      if(yid) {
+        el.style.cssText = 'padding:0 14px';
+        if(b.titulo) el.innerHTML += '<h3 style="font-size:15px;font-weight:600;color:var(--azul-os,#1A3A6E);margin-bottom:8px">' + esc(b.titulo) + '</h3>';
+        el.innerHTML += '<div style="position:relative;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#000"><iframe src="https://www.youtube.com/embed/' + yid + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen loading="lazy"></iframe></div>';
+        if(b.contenido) el.innerHTML += '<p style="font-size:12px;color:var(--gris,#5a6a85);margin-top:8px;padding:0 2px">' + esc(b.contenido) + '</p>';
+      }
+      break;
+
+    case 'audio':
+      el.style.cssText = 'padding:0 14px';
+      if(b.titulo) el.innerHTML += '<h3 style="font-size:15px;font-weight:600;color:var(--azul-os,#1A3A6E);margin-bottom:8px">' + esc(b.titulo) + '</h3>';
+      el.innerHTML += '<audio controls style="width:100%;border-radius:8px"><source src="' + esc(b.url) + '"/></audio>';
+      if(b.contenido) el.innerHTML += '<p style="font-size:12px;color:var(--gris,#5a6a85);margin-top:6px">' + esc(b.contenido) + '</p>';
+      break;
+
+    case 'pdf':
+      el.style.cssText = 'padding:0 14px';
+      if(b.titulo) el.innerHTML += '<h3 style="font-size:15px;font-weight:600;color:var(--azul-os,#1A3A6E);margin-bottom:8px">' + esc(b.titulo) + '</h3>';
+      var a = document.createElement('a');
+      a.href = b.url; a.target = '_blank';
+      a.style.cssText = 'display:flex;align-items:center;gap:10px;background:var(--azul-cl,#eef1f8);border:1px solid var(--borde,#dde3f0);border-radius:10px;padding:14px;text-decoration:none';
+      a.innerHTML = '<span style="font-size:28px">📄</span><div><p style="font-size:13px;font-weight:600;color:var(--azul-os,#1A3A6E)">' + esc(b.titulo||'Ver PDF') + '</p><p style="font-size:11px;color:var(--gris,#5a6a85)">Toca para abrir</p></div><span style="margin-left:auto;color:var(--gris)">→</span>';
+      el.appendChild(a);
+      break;
+
+    case 'imagen':
+      el.style.cssText = 'padding:0 14px';
+      if(b.titulo) el.innerHTML += '<h3 style="font-size:15px;font-weight:600;color:var(--azul-os,#1A3A6E);margin-bottom:8px">' + esc(b.titulo) + '</h3>';
+      el.innerHTML += '<img src="' + esc(b.url) + '" style="width:100%;border-radius:12px;object-fit:cover" loading="lazy"/>';
+      if(b.contenido) el.innerHTML += '<p style="font-size:12px;color:var(--gris,#5a6a85);margin-top:6px;text-align:center">' + esc(b.contenido) + '</p>';
+      break;
+
+    case 'enlace':
+      el.style.cssText = 'padding:0 14px';
+      var lnk = document.createElement('a');
+      lnk.href = b.url; lnk.target = '_blank';
+      lnk.style.cssText = 'display:flex;align-items:center;gap:10px;background:var(--azul-cl,#eef1f8);border:1px solid var(--borde,#dde3f0);border-radius:10px;padding:14px;text-decoration:none';
+      lnk.innerHTML = '<span style="font-size:24px">🔗</span><div><p style="font-size:13px;font-weight:600;color:var(--azul-os,#1A3A6E)">' + esc(b.titulo||b.url) + '</p>' + (b.contenido?'<p style="font-size:11px;color:var(--gris)">'+esc(b.contenido)+'</p>':'') + '</div><span style="margin-left:auto;color:var(--gris)">→</span>';
+      el.appendChild(lnk);
+      break;
+
+    case 'separador':
+      el.innerHTML = '<hr style="border:none;border-top:1px solid var(--borde,#dde3f0);margin:8px 14px"/>';
+      break;
+
+    case 'titulo':
+      el.style.cssText = 'padding:8px 14px 0';
+      el.innerHTML = '<h2 style="font-family:Playfair Display,serif;font-size:24px;color:var(--azul-os,#1A3A6E)">' + esc(b.titulo||'') + '</h2>';
+      if(b.contenido) el.innerHTML += '<p style="font-size:13px;color:var(--gris,#5a6a85);margin-top:4px">' + esc(b.contenido) + '</p>';
+      break;
+
+    default:
+      el.innerHTML = '<p style="padding:0 14px;font-size:12px;color:var(--gris)">Bloque: ' + b.tipo + '</p>';
+  }
+
+  return el;
+}
+
+// ── Modal editar bloque ──
+function cmsOpenBloqueModal(b, slug) {
+  cmsEditBloque = b;
+  var mo = document.getElementById('moCmsBloque');
+  if(!mo) { alert('Modal CMS no encontrado'); return; }
+
+  document.getElementById('cbPageSlug').value  = slug;
+  document.getElementById('cbId').value        = b ? b.id : '';
+  document.getElementById('cbTipo').value      = b ? b.tipo : 'texto';
+  document.getElementById('cbTitulo').value    = b ? b.titulo || '' : '';
+  document.getElementById('cbContenido').value = b ? b.contenido || '' : '';
+  document.getElementById('cbUrl').value       = b ? b.url || '' : '';
+  document.getElementById('cbOrden').value     = b ? b.orden || 0 : 0;
+
+  cmsToggleBloqueFields();
+  mo.classList.add('open');
+}
+
+function cmsToggleBloqueFields() {
+  var tipo = document.getElementById('cbTipo').value;
+  var urlRow  = document.getElementById('cbUrlRow');
+  var fileRow = document.getElementById('cbFileRow');
+  var txtRow  = document.getElementById('cbContenidoRow');
+
+  if(urlRow)  urlRow.style.display  = ['youtube','audio','pdf','imagen','enlace'].includes(tipo) ? 'block' : 'none';
+  if(fileRow) fileRow.style.display = ['audio','pdf','imagen','video'].includes(tipo) ? 'block' : 'none';
+  if(txtRow)  txtRow.style.display  = ['texto','titulo','youtube','enlace','audio','pdf'].includes(tipo) ? 'block' : 'none';
+
+  var urlLbl = document.getElementById('cbUrlLbl');
+  if(urlLbl) {
+    var lbls = {youtube:'URL YouTube', audio:'URL del audio', pdf:'URL del PDF', imagen:'URL de la imagen', enlace:'URL del enlace'};
+    urlLbl.textContent = lbls[tipo] || 'URL';
+  }
+}
+
+async function cmsSaveBloque() {
+  if(!sb) return toast('Supabase no configurado');
+  var id     = document.getElementById('cbId').value;
+  var slug   = document.getElementById('cbPageSlug').value;
+  var tipo   = document.getElementById('cbTipo').value;
+  var titulo = document.getElementById('cbTitulo').value.trim();
+  var contenido = document.getElementById('cbContenido').value.trim();
+  var url    = document.getElementById('cbUrl').value.trim();
+  var orden  = parseInt(document.getElementById('cbOrden').value) || 0;
+
+  // File upload
+  var fileEl = document.getElementById('cbFile');
+  if(fileEl && fileEl.files && fileEl.files[0]) {
+    var file = fileEl.files[0];
+    var bucket = tipo==='imagen'?'imagenes':tipo==='pdf'?'pdfs':tipo==='audio'?'audios':'videos';
+    try {
+      var path = Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      var up = await sb.storage.from(bucket).upload(path, file);
+      if(up.error) throw up.error;
+      url = sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+    } catch(e) { return toast('Error al subir: '+e.message); }
+  }
+
+  var payload = { page_slug:slug, tipo:tipo, titulo:titulo||null, contenido:contenido||null, url:url||null, orden:orden, activo:true };
+  var r = id
+    ? await sb.from('cms_bloques').update(payload).eq('id', id)
+    : await sb.from('cms_bloques').insert(payload);
+
+  if(r.error) return toast('Error: '+r.error.message);
+  document.getElementById('moCmsBloque').classList.remove('open');
+  toast(id ? 'Bloque actualizado ✓' : 'Bloque añadido ✓');
+  cmsRenderPage(slug);
+}
+
+async function cmsMoveBloque(id, slug, dir) {
+  var list = cmsBloques[slug] || [];
+  var idx  = list.findIndex(function(b){return b.id===id;});
+  var other = list[idx + dir];
+  if(!other) return;
+  var updates = [
+    sb.from('cms_bloques').update({orden: other.orden}).eq('id', id),
+    sb.from('cms_bloques').update({orden: list[idx].orden}).eq('id', other.id),
+  ];
+  await Promise.all(updates);
+  cmsRenderPage(slug);
+}
+
+// ── Modal crear/editar página ──
+function cmsOpenPageModal(p) {
+  cmsEditPage = p;
+  var mo = document.getElementById('moCmsPage');
+  if(!mo) return;
+  document.getElementById('cpSlug').value   = p ? p.slug : '';
+  document.getElementById('cpTitulo').value = p ? p.titulo : '';
+  document.getElementById('cpIcono').value  = p ? p.icono : '📄';
+  document.getElementById('cpOrden').value  = p ? p.orden : 99;
+  var slugEl = document.getElementById('cpSlug');
+  if(slugEl) slugEl.disabled = !!(p && p.fija);
+  mo.classList.add('open');
+}
+
+async function cmsSavePage() {
+  if(!sb) return toast('Supabase no configurado');
+  var slug   = document.getElementById('cpSlug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
+  var titulo = document.getElementById('cpTitulo').value.trim();
+  var icono  = document.getElementById('cpIcono').value.trim() || '📄';
+  var orden  = parseInt(document.getElementById('cpOrden').value) || 99;
+
+  if(!slug || !titulo) return toast('Slug y título son obligatorios');
+
+  var payload = { slug, titulo, icono, orden, activo:true };
+
+  var r = cmsEditPage
+    ? await sb.from('cms_pages').update(payload).eq('id', cmsEditPage.id)
+    : await sb.from('cms_pages').insert(payload);
+
+  if(r.error) return toast('Error: '+(r.error.message.includes('unique')?'Ese slug ya existe':r.error.message));
+
+  document.getElementById('moCmsPage').classList.remove('open');
+  toast(cmsEditPage ? 'Página actualizada ✓' : 'Página creada ✓');
+  await cmsLoadPages();
+  // Create pg div if new
+  if(!cmsEditPage) {
+    var newPg = document.createElement('div');
+    newPg.className = 'pg';
+    newPg.id = 'pg-' + slug;
+    newPg.innerHTML = '<div class="cms-content"></div>';
+    document.querySelector('.nav').before(newPg);
+  }
+  navTo(slug);
+}
+
+async function cmsDeletePage(slug) {
+  var page = cmsPages.find(function(p){return p.slug===slug;});
+  if(!page) return;
+  if(page.fija) return toast('Esta página no se puede eliminar');
+  if(!confirm('¿Eliminar la página "'+page.titulo+'" y todo su contenido?')) return;
+  await sb.from('cms_pages').update({activo:false}).eq('slug', slug);
+  toast('Página eliminada ✓');
+  await cmsLoadPages();
+  navTo('inicio');
+}
+
+// ── Admin CMS tab ──
+async function loadAdmCMS() {
+  var l = document.getElementById('admCMSList');
+  if(!l) return;
+  await cmsLoadPages();
+  l.innerHTML = '';
+
+  // Button to create new page
+  var addBtn = document.createElement('button');
+  addBtn.className = 'btn-add';
+  addBtn.innerHTML = '+ Nueva pestaña/página';
+  addBtn.onclick = function(){ cmsOpenPageModal(null); };
+  l.appendChild(addBtn);
+
+  cmsPages.forEach(function(p) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--borde,#dde3f0)';
+    row.innerHTML = '<span style="font-size:20px">'+(p.icono||'📄')+'</span>'
+      + '<div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--azul-os,#1A3A6E)">'+p.titulo+'</p>'
+      + '<small style="font-size:10px;color:var(--gris)">/'+p.slug+(p.fija?' · fija':'')+' · orden '+p.orden+'</small></div>';
+
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:5px';
+
+    var eb = document.createElement('button');
+    eb.innerHTML = '✏️';
+    eb.style.cssText = 'background:rgba(30,123,196,0.12);color:#1A3A6E;border:none;border-radius:6px;padding:6px 9px;font-size:13px;cursor:pointer';
+    eb.onclick = (function(page){ return function(){ cmsOpenPageModal(page); }; })(p);
+
+    var vb = document.createElement('button');
+    vb.innerHTML = '👁️';
+    vb.style.cssText = 'background:rgba(30,123,196,0.12);color:#1A3A6E;border:none;border-radius:6px;padding:6px 9px;font-size:13px;cursor:pointer';
+    vb.onclick = (function(slug){ return function(){ navTo(slug); }; })(p.slug);
+
+    btns.appendChild(eb); btns.appendChild(vb);
+
+    if(!p.fija) {
+      var db = document.createElement('button');
+      db.innerHTML = '🗑️';
+      db.style.cssText = 'background:rgba(192,57,43,0.12);color:#C0392B;border:none;border-radius:6px;padding:6px 9px;font-size:13px;cursor:pointer';
+      db.onclick = (function(slug){ return function(){ cmsDeletePage(slug); }; })(p.slug);
+      btns.appendChild(db);
+    }
+
+    row.appendChild(btns);
+    l.appendChild(row);
+  });
+}
+
+// ── Comentarios ──
+async function loadAdmComentarios() {
+  var l = document.getElementById('admComList'); if(!l) return;
+  if(!sb) { l.innerHTML='<p style="font-size:12px;color:var(--gris)">Configura Supabase</p>'; return; }
+  l.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gris);font-size:12px">Cargando…</div>';
+  try {
+    var r = await sb.from('comentarios').select('*').order('created_at', {ascending:false}).limit(50);
+    var data = r.data;
+    if(!data||!data.length) { l.innerHTML='<p style="font-size:12px;color:var(--gris);padding:10px 0">Sin comentarios todavía</p>'; return; }
+    l.innerHTML = '';
+    data.forEach(function(c) {
+      var row = document.createElement('div');
+      row.style.cssText = 'background:'+(c.aprobado?'#fff':'rgba(255,200,0,0.08)')+';border:1px solid var(--borde,#dde3f0);border-radius:8px;padding:10px 12px;margin-bottom:8px';
+      row.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
+        + '<p style="font-size:12px;font-weight:600;color:var(--azul-os,#1A3A6E)">'+(c.nombre||'Anónimo')+'</p>'
+        + '<span style="font-size:10px;color:var(--gris)">'+(c.aprobado?'✅ Aprobado':'⏳ Pendiente')+'</span>'
+        + '</div>'
+        + '<p style="font-size:12px;color:var(--texto,#0d1b2e);line-height:1.5;margin-bottom:8px">'+esc(c.texto)+'</p>'
+        + '<p style="font-size:10px;color:var(--gris)">'+new Date(c.created_at).toLocaleDateString('es')+'</p>';
+      var btns = document.createElement('div');
+      btns.style.cssText = 'display:flex;gap:5px;margin-top:8px';
+      if(!c.aprobado) {
+        var ab = document.createElement('button');
+        ab.innerHTML = '✅ Aprobar';
+        ab.style.cssText = 'flex:1;background:rgba(39,174,96,0.1);color:#27AE60;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit';
+        ab.onclick = (function(id){ return function(){
+          sb.from('comentarios').update({aprobado:true}).eq('id',id).then(function(){ toast('Aprobado ✓'); loadAdmComentarios(); });
+        }; })(c.id);
+        btns.appendChild(ab);
+      }
+      var db = document.createElement('button');
+      db.innerHTML = '🗑️ Eliminar';
+      db.style.cssText = 'flex:1;background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit';
+      db.onclick = (function(id){ return function(){
+        if(!confirm('¿Eliminar comentario?')) return;
+        sb.from('comentarios').delete().eq('id',id).then(function(){ toast('Eliminado ✓'); loadAdmComentarios(); });
+      }; })(c.id);
+      btns.appendChild(db);
+      row.appendChild(btns);
+      l.appendChild(row);
+    });
+  } catch(e) { l.innerHTML='<p style="color:red;font-size:12px">'+e.message+'</p>'; }
+}
+
+// ── Peticiones de oración ──
+async function loadAdmPeticiones() {
+  var l = document.getElementById('admPetList'); if(!l) return;
+  if(!sb) { l.innerHTML='<p style="font-size:12px;color:var(--gris)">Configura Supabase</p>'; return; }
+  l.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gris);font-size:12px">Cargando…</div>';
+  try {
+    var r = await sb.from('peticiones_oracion').select('*').order('created_at',{ascending:false}).limit(50);
+    var data = r.data;
+    if(!data||!data.length) { l.innerHTML='<p style="font-size:12px;color:var(--gris);padding:10px 0">Sin peticiones todavía</p>'; return; }
+    l.innerHTML = '';
+    data.forEach(function(p) {
+      var row = document.createElement('div');
+      row.style.cssText = 'border:1px solid var(--borde,#dde3f0);border-radius:8px;padding:10px 12px;margin-bottom:8px';
+      row.innerHTML = '<p style="font-size:12px;font-weight:600;color:var(--azul-os,#1A3A6E);margin-bottom:4px">'+(p.nombre||'Anónimo')+'</p>'
+        + '<p style="font-size:12px;color:var(--texto,#0d1b2e);line-height:1.5;margin-bottom:6px">'+esc(p.peticion)+'</p>'
+        + '<p style="font-size:10px;color:var(--gris)">'+new Date(p.created_at).toLocaleDateString('es')+'</p>';
+      var db = document.createElement('button');
+      db.innerHTML = '🗑️';
+      db.style.cssText = 'background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:5px 9px;font-size:12px;cursor:pointer;margin-top:6px';
+      db.onclick = (function(id){ return function(){
+        if(!confirm('¿Eliminar?')) return;
+        sb.from('peticiones_oracion').delete().eq('id',id).then(function(){ toast('Eliminado ✓'); loadAdmPeticiones(); });
+      }; })(p.id);
+      row.appendChild(db);
+      l.appendChild(row);
+    });
+  } catch(e) {}
+}
+
+// ── Enviar comentario (público) ──
+async function enviarComentario(videoId) {
+  var nombre = (document.getElementById('comNombre')||{value:''}).value.trim();
+  var texto  = (document.getElementById('comTexto')||{value:''}).value.trim();
+  if(!texto) return toast('Escribe un comentario');
+  if(!sb) return toast('Supabase no configurado');
+  var payload = { video_id: videoId, texto: texto, nombre: nombre||'Anónimo', aprobado: false };
+  if(currentUser) payload.user_id = currentUser.id;
+  var r = await sb.from('comentarios').insert(payload);
+  if(r.error) return toast('Error: '+r.error.message);
+  toast('¡Comentario enviado! Aparecerá tras aprobación ✓');
+  var f = document.getElementById('comNombre'); if(f) f.value='';
+  var t = document.getElementById('comTexto');  if(t) t.value='';
+}
+
+// ── Enviar petición de oración ──
+async function enviarPeticion() {
+  var nombre   = (document.getElementById('petNombre')||{value:''}).value.trim();
+  var peticion = (document.getElementById('petTexto')||{value:''}).value.trim();
+  var publica  = (document.getElementById('petPublica')||{checked:false}).checked;
+  if(!peticion) return toast('Escribe tu petición');
+  if(!sb) return toast('Supabase no configurado');
+  var payload = { peticion, nombre: nombre||'Anónimo', publica };
+  if(currentUser) payload.user_id = currentUser.id;
+  var r = await sb.from('peticiones_oracion').insert(payload);
+  if(r.error) return toast('Error: '+r.error.message);
+  toast('Petición enviada 🙏 Rezamos contigo');
+  document.getElementById('moPeticion').classList.remove('open');
+}
+
+// ── Stripe pago automático ──
+async function comprarCursoStripe(cursoId, precio, nombre, tipo) {
+  if(!currentUser) {
+    toast('Inicia sesión para continuar');
+    setTimeout(function(){ openMo('moAuth'); }, 800);
+    return;
+  }
+  toast('Preparando pago…');
+  try {
+    var res = await fetch('/.netlify/functions/stripe-checkout', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        cursoId: cursoId,
+        userId: currentUser.id,
+        userEmail: currentUser.email,
+        tipo: tipo || 'unico'
+      })
+    });
+    var data = await res.json();
+    if(data.url) {
+      window.location.href = data.url;
+    } else {
+      toast('Error: ' + (data.error || 'No se pudo iniciar el pago'));
+    }
+  } catch(e) {
+    toast('Error de conexión con el pago. Inténtalo de nuevo.');
+  }
+}
+
+// ── Verificar pago al volver de Stripe ──
+function checkPagoReturn() {
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('pago') === 'ok') {
+    var cursoId = params.get('curso');
+    toast('✅ Pago completado. ¡Ya tienes acceso!');
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+    if(cursoId) {
+      // Refresh formacion to show new access
+      setTimeout(function(){ navTo('formacion'); }, 1000);
+    }
+  } else if(params.get('pago') === 'cancelado') {
+    toast('Pago cancelado');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+// ── Init CMS on load ──
+async function initCMS() {
+  await cmsLoadPages();
+  checkPagoReturn();
+  // Render dynamic pages
+  cmsPages.forEach(function(p) {
+    var existing = document.getElementById('pg-' + p.slug);
+    if(!existing) {
+      var pg = document.createElement('div');
+      pg.className = 'pg';
+      pg.id = 'pg-' + p.slug;
+      pg.innerHTML = '<div class="cms-content"></div>';
+      document.querySelector('.nav').before(pg);
+    } else if(!existing.querySelector('.cms-content')) {
+      // Add cms-content to existing pages if they have dynamic content
+      var cc = document.createElement('div');
+      cc.className = 'cms-content';
+      existing.appendChild(cc);
+    }
+  });
+}
+
+
+
+async function loadMuro() {
+  var l = document.getElementById('muroLista');
+  if(!l) return;
+  if(!sb) { l.innerHTML='<p style="font-size:12px;color:var(--gris);padding:10px 0">Conecta Supabase para ver las peticiones</p>'; return; }
+  l.innerHTML = '<div style="padding:16px;text-align:center;color:var(--gris);font-size:12px">Cargando…</div>';
+  try {
+    var r = await sb.from('peticiones_oracion').select('*').eq('publica', true).order('created_at', {ascending:false}).limit(30);
+    var data = r.data;
+    if(!data || !data.length) {
+      l.innerHTML = '<div style="padding:20px;text-align:center"><p style="font-size:28px;margin-bottom:8px">🙏</p><p style="font-size:13px;color:var(--gris)">Sé el primero en compartir tu petición</p></div>';
+      return;
+    }
+    l.innerHTML = '';
+    data.forEach(function(p) {
+      var card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border:1px solid var(--borde,#dde3f0);border-radius:10px;padding:12px 14px;margin-bottom:8px';
+      card.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+        + '<span style="font-size:20px">🙏</span>'
+        + '<p style="font-size:12px;font-weight:600;color:var(--azul-os,#1A3A6E)">' + esc(p.nombre||'Anónimo') + '</p>'
+        + '<span style="font-size:10px;color:var(--gris);margin-left:auto">' + new Date(p.created_at).toLocaleDateString('es') + '</span>'
+        + '</div>'
+        + '<p style="font-size:13px;color:var(--texto,#0d1b2e);line-height:1.6">' + esc(p.peticion) + '</p>';
+      l.appendChild(card);
+    });
+  } catch(e) {
+    l.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:10px 0">No se pudieron cargar las peticiones</p>';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function(){
   // Debug: show any JS errors on screen
   window.onerror = function(msg, src, line, col, err){
@@ -3778,5 +4373,92 @@ function openMPaso(p){
 
 
 </script>
+
+<!-- ══ MODAL CMS BLOQUE ══ -->
+<div class="mo bot" id="moCmsBloque" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mf" style="max-height:92vh">
+    <h3>Bloque de contenido <button class="btn-x" onclick="document.getElementById('moCmsBloque').classList.remove('open')">✕</button></h3>
+    <input type="hidden" id="cbId"/>
+    <input type="hidden" id="cbPageSlug"/>
+
+    <div class="mfg">
+      <label>Tipo de bloque</label>
+      <select id="cbTipo" onchange="cmsToggleBloqueFields()" style="width:100%;padding:9px 12px;border:1px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:var(--texto)">
+        <option value="texto">📝 Texto / párrafo</option>
+        <option value="titulo">🔤 Título de sección</option>
+        <option value="youtube">▶️ Vídeo YouTube</option>
+        <option value="audio">🎵 Audio</option>
+        <option value="pdf">📄 PDF / documento</option>
+        <option value="imagen">🖼️ Imagen</option>
+        <option value="enlace">🔗 Enlace</option>
+        <option value="separador">➖ Separador</option>
+      </select>
+    </div>
+
+    <div class="mfg">
+      <label>Título / nombre</label>
+      <input type="text" id="cbTitulo" placeholder="Título del bloque…"/>
+    </div>
+
+    <div class="mfg" id="cbContenidoRow">
+      <label>Descripción / texto</label>
+      <textarea id="cbContenido" placeholder="Texto, descripción…" style="min-height:80px"></textarea>
+    </div>
+
+    <div class="mfg" id="cbUrlRow">
+      <label id="cbUrlLbl">URL</label>
+      <input type="url" id="cbUrl" placeholder="https://…"/>
+    </div>
+
+    <div class="mfg" id="cbFileRow" style="display:none">
+      <label>Subir archivo</label>
+      <input type="file" id="cbFile" style="width:100%;padding:8px;border:1.5px dashed var(--borde);border-radius:8px;font-size:12px;cursor:pointer"/>
+      <p style="font-size:10px;color:var(--gris);margin-top:4px">Se sube a Supabase Storage. Máx. 50MB.</p>
+    </div>
+
+    <div class="mfg">
+      <label>Orden</label>
+      <input type="number" id="cbOrden" value="0" min="0" style="width:100px"/>
+    </div>
+
+    <div class="form-btns">
+      <button class="btn-can" onclick="document.getElementById('moCmsBloque').classList.remove('open')">Cancelar</button>
+      <button class="btn-sav" onclick="cmsSaveBloque()">💾 Guardar bloque</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL CMS PÁGINA ══ -->
+<div class="mo" id="moCmsPage" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="ma" style="max-width:420px">
+    <h2 style="font-family:Playfair Display,serif;font-size:22px;color:var(--azul-os);margin-bottom:16px">Configurar página</h2>
+
+    <div class="mfg">
+      <label>Slug (identificador único)</label>
+      <input type="text" id="cpSlug" placeholder="ej: formacion" style="text-transform:lowercase"/>
+      <p style="font-size:10px;color:var(--gris);margin-top:3px">Solo letras minúsculas, números y guiones. No se puede cambiar en páginas fijas.</p>
+    </div>
+    <div class="mfg">
+      <label>Título en el menú *</label>
+      <input type="text" id="cpTitulo" placeholder="Ej: Formación"/>
+    </div>
+    <div class="mf-row">
+      <div class="mfg">
+        <label>Icono (emoji)</label>
+        <input type="text" id="cpIcono" placeholder="📄" maxlength="4"/>
+      </div>
+      <div class="mfg">
+        <label>Orden en nav</label>
+        <input type="number" id="cpOrden" value="5" min="0"/>
+      </div>
+    </div>
+
+    <div class="form-btns">
+      <button class="btn-can" onclick="document.getElementById('moCmsPage').classList.remove('open')">Cancelar</button>
+      <button class="btn-sav" onclick="cmsSavePage()">💾 Guardar página</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
