@@ -89,6 +89,18 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
 
 /* NOTICIAS SCROLL */
 .nscroll{display:flex;gap:10px;padding:0 14px 4px;overflow-x:auto;scrollbar-width:none}
+.reels-wrap{height:calc(100vh - 120px);overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none}
+.reels-wrap::-webkit-scrollbar{display:none}
+.reel-item{height:calc(100vh - 120px);scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.reel-iframe{width:100%;height:100%;border:none;position:absolute;top:0;left:0}
+.reel-overlay{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.85));color:#fff;z-index:2}
+.reel-title{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.reel-actions{position:absolute;right:12px;bottom:80px;display:flex;flex-direction:column;gap:16px;z-index:3}
+.reel-btn{background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.reto-day{background:#fff;border:1px solid var(--borde);border-radius:12px;margin:0 14px 10px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.reto-day.done{background:var(--azul-cl);border-color:var(--azul)}
+.reto-day-num{width:36px;height:36px;border-radius:50%;background:var(--azul-cl);color:var(--azul-os);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.reto-day.done .reto-day-num{background:var(--azul);color:#fff}
 .nscroll::-webkit-scrollbar{display:none}
 .ncard{background:#fff;border:1px solid var(--borde);border-radius:var(--r);width:200px;flex-shrink:0;overflow:hidden;cursor:pointer}
 .ncard:active{border-color:var(--azul)}
@@ -511,6 +523,8 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
   <div class="sec-hdr"><div><h2>Más secciones</h2></div></div>
   <div class="mas-list">
     <div class="lcard" onclick="navTo('explorar')"><div class="lcard-ico tv" style="background:var(--azul)">🔍</div><div class="lcard-info"><h3>Explorar</h3><p>Todo el contenido con filtros</p></div><span class="lcard-arr">→</span></div>
+    <div class="lcard" onclick="navTo('reels')"><div class="lcard-ico tv" style="background:#C0392B">✨</div><div class="lcard-info"><h3>Reels</h3><p>Testimonios en formato reel</p></div><span class="lcard-arr">→</span></div>
+    <div class="lcard" onclick="navTo('reto')"><div class="lcard-ico tv" style="background:var(--azul-os)">🔥</div><div class="lcard-info"><h3>Reto de oración</h3><p>21 días para transformar tu vida</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('itinerarios')"><div class="lcard-ico tv" style="background:var(--azul-os)">🗺️</div><div class="lcard-info"><h3>Itinerarios</h3><p>Caminos de formación acompañada</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('miespacio')"><div class="lcard-ico tv" style="background:var(--azul-med)">👤</div><div class="lcard-info"><h3>Mi espacio</h3><p>Progreso, guardados y perfil</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('agenda')"><div class="lcard-ico tv">📅</div><div class="lcard-info"><h3>Agenda</h3><p>Retiros, misiones y eventos</p></div><span class="lcard-arr">→</span></div>
@@ -656,6 +670,31 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <div id="admCMSList"></div>
     </div>
   </div>
+</div>
+
+<!-- REELS -->
+<div class="pg" id="pg-reels">
+  <div class="sec-hdr" style="position:sticky;top:0;z-index:10;background:#000;border-bottom:none">
+    <div><h2 style="color:#fff">✨ Reels</h2><p class="sub" style="color:rgba(255,255,255,0.6)">Testimonios en formato reel</p></div>
+  </div>
+  <div class="reels-wrap" id="reelsWrap">
+    <div class="spin" style="color:#fff;padding:40px;text-align:center">Cargando reels…</div>
+  </div>
+</div>
+
+<!-- RETO DE ORACIÓN -->
+<div class="pg" id="pg-reto">
+  <div class="sec-hdr"><div><h2>🔥 Reto de oración</h2><p class="sub">21 días para transformar tu vida</p></div></div>
+  <div id="retoHeader" style="margin:0 14px 16px;background:linear-gradient(135deg,var(--azul-os),var(--azul));border-radius:14px;padding:20px;color:#fff;text-align:center">
+    <p style="font-size:28px;margin-bottom:6px">🔥</p>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">Reto de 21 días</h3>
+    <p style="font-size:12px;opacity:0.85">Un vídeo o reflexión cada día. Construye el hábito de la oración.</p>
+    <div id="retoProgBar" style="background:rgba(255,255,255,0.2);border-radius:20px;height:6px;margin-top:12px">
+      <div id="retoProgFill" style="background:#fff;height:6px;border-radius:20px;width:0%;transition:width 0.5s"></div>
+    </div>
+    <p id="retoProgText" style="font-size:11px;opacity:0.8;margin-top:6px">0 de 21 días completados</p>
+  </div>
+  <div id="retoDays"><div class="spin">Cargando…</div></div>
 </div>
 
 <!-- NAV -->
@@ -804,6 +843,10 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <div class="mv-hdr"><h3 id="mvTit"></h3><button class="btn-x" onclick="cxMo('moVideo')">✕</button></div>
     <iframe id="mvIframe" allowfullscreen allow="autoplay;encrypted-media"></iframe>
     <p class="mv-desc" id="mvDesc"></p>
+    <div style="display:flex;gap:8px;padding:10px 14px 0">
+      <button onclick="compartirVideo()" style="flex:1;background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📤 Compartir</button>
+      <button onclick="guardarVideoActual()" style="flex:1;background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit" id="btnGuardarVideo">❤️ Guardar</button>
+    </div>
   </div>
 </div>
 
@@ -862,7 +905,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <div class="mfg hid" id="fvTextoWrap"><label>Contenido</label><textarea id="fvTexto" placeholder="Escribe el contenido…" style="min-height:120px"></textarea></div>
     <div class="mf-row">
       <div class="mfg"><label>Sección</label>
-        <select id="fvs"><option value="testimonios">Testimonios</option><option value="formacion">Formación</option><option value="evangelizacion">Evangelización</option></select>
+        <select id="fvs"><option value="testimonios">Testimonios</option><option value="formacion">Formación</option><option value="evangelizacion">Evangelización</option><option value="reels">✨ Reels</option></select>
       </div>
       <div class="mfg"><label>Categoría</label>
         <select id="fvc"><option value="">—</option><option value="conversion">Conversión</option><option value="curacion">Curación</option><option value="mision">Misión</option><option value="familia">Familia</option><option value="joven">Jóvenes</option><option value="vocacion">Vocación</option><option value="formacion">Formación</option><option value="oracion">Oración</option></select>
@@ -1833,6 +1876,154 @@ async function validarCodigoAcceso(id, tipo){
   }
 })();
 
+// ══ REELS ══
+async function loadReels(){
+  var wrap = document.getElementById('reelsWrap'); if(!wrap) return;
+  // Fondo negro para la página
+  var pg = document.getElementById('pg-reels');
+  if(pg) pg.style.background = '#000';
+  wrap.innerHTML = '<div class="spin" style="color:#fff;padding:40px;text-align:center">Cargando…</div>';
+  var data = [];
+  if(sb){
+    try{
+      var r = await sb.from('videos').select('*').eq('activo',true).eq('seccion','reels').eq('tipo','youtube').order('created_at',{ascending:false}).limit(20);
+      if(r.data && r.data.length) data = r.data;
+    }catch(e){}
+  }
+  if(!data.length){
+    wrap.innerHTML = '<div style="color:#fff;padding:40px;text-align:center;font-size:14px">Añade vídeos de testimonios para verlos aquí como reels</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  data.forEach(function(v, i){
+    var yid = ytId(v.url);
+    if(!yid) return;
+    var item = document.createElement('div');
+    item.className = 'reel-item';
+    // Thumbnail como preview, iframe al hacer clic
+    // Construir reel con createElement para evitar conflictos de comillas
+    var thumb = document.createElement('img');
+    thumb.src = 'https://img.youtube.com/vi/'+yid+'/hqdefault.jpg';
+    thumb.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0';
+    thumb.onerror = function(){ this.style.display='none'; };
+    item.appendChild(thumb);
+
+    var playBtn = document.createElement('div');
+    playBtn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;background:rgba(255,0,0,0.85);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;z-index:2';
+    playBtn.textContent = '▶';
+    playBtn.onclick = (function(yy){ return function(){ activarReel(this, yy); }; })(yid);
+    item.appendChild(playBtn);
+
+    var overlay = document.createElement('div');
+    overlay.className = 'reel-overlay';
+    overlay.innerHTML = '<div class="reel-title">'+esc(v.titulo)+'</div>';
+    item.appendChild(overlay);
+
+    var actions = document.createElement('div');
+    actions.className = 'reel-actions';
+    var shareBtn = document.createElement('button');
+    shareBtn.className = 'reel-btn'; shareBtn.textContent = '📤';
+    shareBtn.onclick = (function(yy,tt){ return function(){ compartirReelYid(yy,tt); }; })(yid, v.titulo);
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'reel-btn'; saveBtn.textContent = '❤️';
+    var vdata = {id:v.id, titulo:v.titulo, url:v.url, tipo:v.tipo};
+    saveBtn.onclick = (function(vv){ return function(){ toggleGuardado(vv); }; })(vdata);
+    actions.appendChild(shareBtn); actions.appendChild(saveBtn);
+    item.appendChild(actions);
+    wrap.appendChild(item);
+  });
+}
+function activarReel(btn, yid){
+  var item = btn.closest('.reel-item');
+  // Quitar thumbnail y play
+  item.querySelectorAll('img, div[onclick*="activarReel"]').forEach(function(el){ el.remove(); });
+  var iframe = document.createElement('iframe');
+  iframe.className = 'reel-iframe';
+  iframe.src = 'https://www.youtube.com/embed/'+yid+'?autoplay=1&playsinline=1';
+  iframe.allow = 'autoplay;encrypted-media';
+  iframe.allowFullscreen = true;
+  item.insertBefore(iframe, item.firstChild);
+}
+function compartirReelYid(yid, titulo){
+  var url = 'https://youtu.be/'+yid;
+  if(navigator.share){ navigator.share({title:titulo, url:url}); }
+  else { navigator.clipboard.writeText(url).then(function(){ toast('¡Enlace copiado!'); }); }
+}
+
+// ══ RETO DE ORACIÓN ══
+var RETO_DIAS = 21;
+async function loadReto(){
+  var cont = document.getElementById('retoDays'); if(!cont) return;
+  cont.innerHTML = '<div class="spin">Cargando…</div>';
+  // Cargar días del reto desde Supabase (itinerario especial con codigo='reto-oracion')
+  var dias = [];
+  if(sb){
+    try{
+      var ri = await sb.from('itinerarios').select('id').eq('codigo','reto-oracion').maybeSingle();
+      if(ri.data){
+        var rp = await sb.from('itinerario_pasos').select('*').eq('itinerario_id',ri.data.id).order('orden');
+        if(rp.data) dias = rp.data;
+      }
+    }catch(e){}
+  }
+  // Progreso guardado local
+  var prog = {};
+  try{ prog = JSON.parse(localStorage.getItem('mm_reto')||'{}'); }catch(e){}
+  // Si hay usuario, cargar de Supabase
+  if(sb && currentUser){
+    try{
+      var rpr = await sb.from('progreso_itinerario').select('paso_id').eq('user_id',currentUser.id);
+      if(rpr.data) rpr.data.forEach(function(p){ prog[p.paso_id]=true; });
+    }catch(e){}
+  }
+  var completados = Object.keys(prog).length;
+  // Si no hay días configurados, mostrar plantilla de 21 días
+  if(!dias.length){
+    for(var i=1;i<=RETO_DIAS;i++) dias.push({id:'day'+i, orden:i, titulo:'Día '+i+': Por configurar', contenido:''});
+  }
+  // Progress bar
+  var pct = Math.min(100, Math.round(completados/RETO_DIAS*100));
+  var fill = document.getElementById('retoProgFill'); if(fill) fill.style.width=pct+'%';
+  var txt = document.getElementById('retoProgText'); if(txt) txt.textContent=completados+' de '+RETO_DIAS+' días completados';
+  // Render días
+  cont.innerHTML = '';
+  dias.forEach(function(d){
+    var done = !!prog[d.id];
+    var row = document.createElement('div');
+    row.className = 'reto-day' + (done?' done':'');
+    row.innerHTML = '<div class="reto-day-num">'+(done?'✓':d.orden)+'</div>'
+      +'<div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--azul-os)">'+esc(d.titulo)+'</p>'
+      +(d.contenido?'<p style="font-size:11px;color:var(--gris);margin-top:2px">'+esc(d.contenido.substring(0,60))+'…</p>':'')+'</div>'
+      +(done?'<span style="color:var(--azul);font-size:16px">✅</span>':'<span style="color:var(--gris);font-size:16px">›</span>');
+    row.onclick = (function(dia, isDone){ return function(){ abrirDiaReto(dia, isDone); }; })(d, done);
+    cont.appendChild(row);
+  });
+}
+
+function abrirDiaReto(dia, done){
+  // Abrir contenido del día — si tiene URL de YouTube, reproducirlo
+  var yid = ytId(dia.contenido||'');
+  if(yid){ playVid(dia.titulo, dia.contenido, '', 'youtube', dia.id); }
+  else if(dia.contenido){
+    toast(dia.titulo+': '+dia.contenido.substring(0,100));
+  } else {
+    toast('Este día aún no tiene contenido configurado');
+    return;
+  }
+  // Marcar como completado
+  if(!done){
+    try{
+      var prog = JSON.parse(localStorage.getItem('mm_reto')||'{}');
+      prog[dia.id] = true;
+      localStorage.setItem('mm_reto', JSON.stringify(prog));
+    }catch(e){}
+    if(sb && currentUser && dia.id.length > 5){
+      sb.from('progreso_itinerario').upsert({user_id:currentUser.id, paso_id:dia.id, itinerario_id:dia.itinerario_id||null, completado:true},{onConflict:'user_id,paso_id'}).then(function(){});
+    }
+    setTimeout(loadReto, 500);
+  }
+}
+
 // ══ ADMIN EDIT BUTTONS HELPER ══
 function agregarBotonesEditar(card, item, tipo){
   const eb=document.createElement('div');
@@ -2170,6 +2361,8 @@ function navTo(p){
   if(p==='formacion') loadSeries();
   if(p==='itinerarios') loadItinPublicos();
   if(p==='directos') loadDirectos();
+  if(p==='reels') loadReels();
+  if(p==='reto') loadReto();
   if(p==='evangelizacion') loadEvang();
   if(p==='miespacio') loadMiEspacio();
   if(p==='agenda') loadEventos();
@@ -2473,17 +2666,52 @@ function renderVEj(g){
     {id:'e4',titulo:'Curacion milagrosa — Testimonio de fe',url:'https://www.youtube.com/watch?v=DTTQtCVPw8w',tipo:'youtube',descripcion:'',categoria:'curacion'},
   ]);
 }
-function playVid(tit,url,desc,tipo){
+function playVid(tit,url,desc,tipo,vidId){
   if(tipo==='audio'){playAudio(url,tit);return;}
   if(tipo==='pdf'){window.open(url,'_blank');return;}
   if(tipo==='enlace'){window.open(url,'_blank');return;}
   const yid=ytId(url);
+  // Guardar vídeo actual para compartir/guardar
+  window._currentVideo = {id:vidId||yid||url, titulo:tit, url:url, descripcion:desc||'', tipo:tipo||'youtube'};
   document.getElementById('mvTit').textContent=tit;
   const fr=document.getElementById('mvIframe');
   fr.style.display='block';
-  fr.src=yid?('https://www.youtube.com/embed/'+yid+'?autoplay=1'):(url||'');
+  // Continúa viendo: recuperar progreso guardado
+  var startAt = 0;
+  try{
+    var prog = JSON.parse(localStorage.getItem('mm_progreso')||'{}');
+    startAt = prog[yid||url] || 0;
+  }catch(e){}
+  var src = yid ? ('https://www.youtube.com/embed/'+yid+'?autoplay=1'+(startAt>10?'&start='+Math.floor(startAt):'')) : (url||'');
+  fr.src = src;
   document.getElementById('mvDesc').textContent=desc||'';
+  // Actualizar botón guardar
+  var btnG = document.getElementById('btnGuardarVideo');
+  if(btnG) btnG.textContent = isSaved(vidId||yid||url) ? '❤️ Guardado' : '🤍 Guardar';
   openMo('moVideo');
+}
+
+function compartirVideo(){
+  var v = window._currentVideo;
+  if(!v) return;
+  var yid = ytId(v.url);
+  var shareUrl = yid ? 'https://youtu.be/'+yid : v.url;
+  var msg = v.titulo + '\n' + shareUrl + '\n\n📲 Vía Mater Mundi TV';
+  if(navigator.share){
+    navigator.share({title: v.titulo, text: 'Te comparto este vídeo de Mater Mundi TV', url: shareUrl});
+  } else {
+    navigator.clipboard.writeText(msg).then(function(){ toast('¡Enlace copiado! 📋'); });
+  }
+}
+
+function guardarVideoActual(){
+  var v = window._currentVideo;
+  if(!v) return;
+  toggleGuardado(v);
+  var btnG = document.getElementById('btnGuardarVideo');
+  setTimeout(function(){
+    if(btnG) btnG.textContent = isSaved(v.id) ? '❤️ Guardado' : '🤍 Guardar';
+  }, 300);
 }
 
 // ══ EXPLORAR ══
@@ -3097,25 +3325,15 @@ async function loadNoticias(){
     }catch(e){}
   }
 
-  // 2. allorigins proxy → WordPress API (works from Netlify, no CORS)
+  // 2. Netlify Function → WordPress API (sin CORS)
   if(!data.length){
     try{
-      var WP_URL = 'https://www.matermundi.tv/wp-json/wp/v2/posts?per_page=6&_fields=id,title,link,excerpt,_embedded&_embed=wp:featuredmedia';
-      var PROXY = 'https://api.allorigins.win/get?url=' + encodeURIComponent(WP_URL);
-      var res = await fetch(PROXY);
+      var res = await fetch('/.netlify/functions/get-noticias');
       if(res.ok){
-        var json = await res.json();
-        var posts = JSON.parse(json.contents);
-        if(Array.isArray(posts) && posts.length){
-          data = posts.map(function(p){
-            var img = '';
-            try{ img = p._embedded['wp:featuredmedia'][0].source_url || ''; }catch(e){}
-            var titulo = (p.title && p.title.rendered || '').replace(/&amp;/g,'&').replace(/&#8217;/g,"'").replace(/&#8220;/g,'«').replace(/&#8221;/g,'»').replace(/<[^>]+>/g,'');
-            return {id:'wp_'+p.id, titulo:titulo, url:p.link||'', imagen_url:img, categoria:'noticias'};
-          });
-        }
+        var posts = await res.json();
+        if(Array.isArray(posts) && posts.length) data = posts;
       }
-    }catch(e){ console.log('allorigins failed:', e.message); }
+    }catch(e){ console.log('get-noticias failed:', e.message); }
   }
 
   // 3. Hardcoded fallback
