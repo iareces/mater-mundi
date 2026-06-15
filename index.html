@@ -495,11 +495,13 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
 <!-- AGENDA -->
 <div class="pg" id="pg-agenda">
   <div class="sec-hdr"><div><h2>📅 Agenda</h2><p class="sub">Retiros, misiones y eventos</p></div></div>
-  <div class="filtros">
-    <button class="fbtn on">Próximos</button>
-    <button class="fbtn">Retiros</button>
-    <button class="fbtn">Misiones</button>
-    <button class="fbtn">Cursos</button>
+  <div class="filtros" id="filtrosAgenda">
+    <button class="fbtn on" data-tipo="todos" onclick="setFiltroAgenda(this)">Próximos</button>
+    <button class="fbtn" data-tipo="retiro" onclick="setFiltroAgenda(this)">Retiros</button>
+    <button class="fbtn" data-tipo="mision" onclick="setFiltroAgenda(this)">Misiones</button>
+    <button class="fbtn" data-tipo="curso" onclick="setFiltroAgenda(this)">Cursos</button>
+    <button class="fbtn" data-tipo="congreso" onclick="setFiltroAgenda(this)">Congresos</button>
+    <button class="fbtn" data-tipo="otro" onclick="setFiltroAgenda(this)">Otros</button>
   </div>
   <div class="eventos" id="listaEventos"><div class="spin">Cargando…</div></div>
 </div>
@@ -510,7 +512,6 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
   <div class="mas-list">
     <div class="lcard" onclick="navTo('explorar')"><div class="lcard-ico tv" style="background:var(--azul)">🔍</div><div class="lcard-info"><h3>Explorar</h3><p>Todo el contenido con filtros</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('itinerarios')"><div class="lcard-ico tv" style="background:var(--azul-os)">🗺️</div><div class="lcard-info"><h3>Itinerarios</h3><p>Caminos de formación acompañada</p></div><span class="lcard-arr">→</span></div>
-    <div class="lcard" onclick="navTo('directos')"><div class="lcard-ico tv" style="background:#C0392B">📡</div><div class="lcard-info"><h3>Directos</h3><p>Emisiones en vivo y agenda</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('miespacio')"><div class="lcard-ico tv" style="background:var(--azul-med)">👤</div><div class="lcard-info"><h3>Mi espacio</h3><p>Progreso, guardados y perfil</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('agenda')"><div class="lcard-ico tv">📅</div><div class="lcard-info"><h3>Agenda</h3><p>Retiros, misiones y eventos</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="openMo('moPeticion')"><div class="lcard-ico tv" style="background:var(--azul)">🙏</div><div class="lcard-info"><h3>Petición de oración</h3><p>El equipo ora por ti</p></div><span class="lcard-arr">→</span></div>
@@ -720,7 +721,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
 </div>
 
 <!-- DIRECTOS -->
-<div class="pg" id="pg-directos">
+<div class="pg" id="pg-directos" style="display:none">
   <div class="sec-hdr">
     <div><h2>📡 Directos</h2><p class="sub">Emisiones y agenda</p></div>
     <a href="https://www.youtube.com/@MatermundiTV/streams" class="btn-yt" target="_blank">▶ Canal</a>
@@ -754,6 +755,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     </div>
   </div>
   <div id="meAuth" class="hid">
+    <!-- Perfil -->
     <div style="margin:0 14px 14px;background:#fff;border:1px solid var(--borde);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px">
       <div style="width:52px;height:52px;background:var(--azul-cl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👤</div>
       <div style="flex:1">
@@ -762,16 +764,27 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       </div>
       <button onclick="toggleUser()" style="background:var(--azul-cl);border:none;border-radius:8px;padding:6px 10px;font-size:11px;color:var(--gris);cursor:pointer">Salir</button>
     </div>
+    <!-- Mis cursos -->
+    <div style="padding:0 14px 14px">
+      <p style="font-size:13px;font-weight:600;color:var(--azul-os);margin-bottom:10px">🎓 Mis cursos</p>
+      <div id="meCursos"><div class="spin">Cargando…</div></div>
+    </div>
+    <!-- Mis itinerarios -->
     <div style="padding:0 14px 14px">
       <p style="font-size:13px;font-weight:600;color:var(--azul-os);margin-bottom:10px">🗺️ Mis itinerarios</p>
       <div id="meItinerarios"><div class="spin">Cargando…</div></div>
     </div>
-    <div style="padding:0 14px;display:flex;flex-direction:column;gap:8px">
-      <div class="lcard" onclick="navTo('itinerarios')"><div class="lcard-ico tv">🗺️</div><div class="lcard-info"><h3>Mis itinerarios</h3><p>Continúa donde lo dejaste</p></div><span class="lcard-arr">→</span></div>
+    <!-- Guardados -->
+    <div style="padding:0 14px 14px">
+      <p style="font-size:13px;font-weight:600;color:var(--azul-os);margin-bottom:10px">❤️ Guardados</p>
+      <div id="guardadosLista"><div class="spin">Cargando…</div></div>
+    </div>
+    <!-- Accesos rápidos -->
+    <div style="padding:0 14px 14px;display:flex;flex-direction:column;gap:8px">
       <div class="lcard" onclick="pedirRecordatorioDiario()"><div class="lcard-ico tv" style="background:var(--azul)">🔔</div><div class="lcard-info"><h3>Evangelio cada mañana</h3><p>Recíbelo a las 8h · activar recordatorio</p></div><span class="lcard-arr">→</span></div>
       <div class="lcard" onclick="navTo('links')"><div class="lcard-ico tv">🔗</div><div class="lcard-info"><h3>Síguenos</h3><p>Redes y canales</p></div><span class="lcard-arr">→</span></div>
       <div class="lcard" onclick="navTo('evangelizacion')"><div class="lcard-ico tv">✝️</div><div class="lcard-info"><h3>Evangelización</h3><p>Recursos y misión</p></div><span class="lcard-arr">→</span></div>
-      <div class="lcard" onclick="navTo('admin')"><div class="lcard-ico tv">⚙️</div><div class="lcard-info"><h3>Administración</h3><p>Panel de gestión</p></div><span class="lcard-arr">→</span></div>
+      <div class="lcard" id="meAdminCard" onclick="navTo('admin')" style="display:none"><div class="lcard-ico tv">⚙️</div><div class="lcard-info"><h3>Administración</h3><p>Panel de gestión</p></div><span class="lcard-arr">→</span></div>
     </div>
   </div>
 </div>
@@ -1701,7 +1714,19 @@ function pedirCodigoAcceso(id, tipo, nombre, precio){
     const campo = tipo==='serie'||tipo==='curso' ? 'curso_id' : 'itinerario_id';
     sb.from(tabla).select('id').eq('user_id',currentUser.id).eq(campo,id).eq('pagado',true).maybeSingle()
       .then(function(r){
-        if(r.data){ toast('✅ Ya tienes acceso'); return; }
+        if(r.data){
+          // Ya tiene acceso — abrir directamente sin pedir pago
+          if(tipo==='itinerario') {
+            sb.from('itinerarios').select('*,itinerario_pasos(*)').eq('id',id).maybeSingle().then(function(ri){
+              if(ri.data) abrirItinData(ri.data);
+            });
+          } else {
+            // Para cursos/series, navegar a la sección de formación con el curso abierto
+            navTo('formacion');
+            toast('✅ Contenido desbloqueado');
+          }
+          return;
+        }
         mostrarModalAcceso(id, tipo, nombre, precio);
       });
   } else {
@@ -1728,45 +1753,19 @@ function mostrarModalAcceso(id, tipo, nombre, precio){
   const stripeBtn = document.createElement('button');
   stripeBtn.innerHTML = '💳 Pagar con tarjeta';
   stripeBtn.style.cssText = 'background:var(--azul);color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit';
-  stripeBtn.onclick = function(){ procesarPago('stripe'); };
+  stripeBtn.onclick = (function(cid,ctipo){ return function(){ procesarPagoDirecto('stripe',cid,ctipo,modal); }; })(id,tipo);
   
   const bizumBtn = document.createElement('button');
   bizumBtn.innerHTML = '📱 Pagar con Bizum';
   bizumBtn.style.cssText = 'background:#00B4D8;color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit';
-  bizumBtn.onclick = function(){ procesarPago('bizum'); };
+  bizumBtn.onclick = (function(cid,ctipo){ return function(){ procesarPagoDirecto('bizum',cid,ctipo,modal); }; })(id,tipo);
   
   const transBtn = document.createElement('button');
   transBtn.innerHTML = '🏦 Transferencia bancaria';
   transBtn.style.cssText = 'background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit';
-  transBtn.onclick = function(){ procesarPago('transferencia'); };
+  transBtn.onclick = (function(cid,ctipo){ return function(){ procesarPagoDirecto('transferencia',cid,ctipo,modal); }; })(id,tipo);
   
   btns.appendChild(stripeBtn);btns.appendChild(bizumBtn);btns.appendChild(transBtn);
-  
-  // Code access section
-  const codSec = document.createElement('div');
-  codSec.style.cssText = 'border-top:1px solid var(--borde);padding-top:12px';
-  
-  const codLbl = document.createElement('p');
-  codLbl.style.cssText = 'font-size:11px;color:var(--gris);margin-bottom:6px';
-  codLbl.textContent = '¿Ya tienes un código de acceso?';
-  
-  const codRow = document.createElement('div');
-  codRow.style.cssText = 'display:flex;gap:6px';
-  
-  const codInput = document.createElement('input');
-  codInput.type = 'text';
-  codInput.id = 'codigoAccesoPago';
-  codInput.placeholder = 'Introduce tu código';
-  codInput.style.cssText = 'flex:1;padding:8px 10px;border:1px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;outline:none;text-transform:uppercase';
-  
-  const codBtn = document.createElement('button');
-  codBtn.innerHTML = '→';
-  codBtn.style.cssText = 'background:var(--azul-os);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit';
-  codBtn.onclick = (function(cid, ctipo){ return function(){ validarCodigoAcceso(cid, ctipo); }; })(id, tipo);
-  codInput.onkeydown = (function(cid, ctipo){ return function(e){ if(e.key==='Enter') validarCodigoAcceso(cid, ctipo); }; })(id, tipo);
-  
-  codRow.appendChild(codInput); codRow.appendChild(codBtn);
-  codSec.appendChild(codLbl); codSec.appendChild(codRow);
   
   // Cancel button
   const cancelBtn = document.createElement('button');
@@ -1774,7 +1773,7 @@ function mostrarModalAcceso(id, tipo, nombre, precio){
   cancelBtn.style.cssText = 'width:100%;background:none;border:none;color:var(--gris);font-size:12px;cursor:pointer;padding:8px;font-family:inherit;margin-top:8px';
   cancelBtn.onclick = function(){ modal.remove(); };
   
-  box.appendChild(hdr);box.appendChild(btns);box.appendChild(codSec);box.appendChild(cancelBtn);
+  box.appendChild(hdr);box.appendChild(btns);box.appendChild(cancelBtn);
   modal.appendChild(box);
   modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
   document.body.appendChild(modal);
@@ -1804,6 +1803,35 @@ async function validarCodigoAcceso(id, tipo){
     }
   }catch(e){toast('Error: '+e.message);}
 }
+
+// ══ DETECCIÓN RETORNO DE STRIPE ══
+(function checkStripeReturn() {
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('pago') === 'ok') {
+    var cursoId = params.get('curso');
+    // Limpiar URL sin recargar
+    window.history.replaceState({}, '', window.location.pathname);
+    // Esperar a que Supabase auth cargue
+    setTimeout(function() {
+      if(currentUser && cursoId && sb) {
+        sb.from('accesos_curso').select('id').eq('user_id', currentUser.id).eq('curso_id', cursoId).eq('pagado', true).maybeSingle()
+          .then(function(r) {
+            if(r.data) {
+              toast('🎉 ¡Pago completado! Ya tienes acceso al contenido');
+            } else {
+              // El webhook puede tardar unos segundos
+              toast('✅ Pago recibido. El acceso se activará en unos momentos.');
+            }
+          });
+      } else {
+        toast('✅ Pago completado. Inicia sesión para acceder al contenido.');
+      }
+    }, 1500);
+  } else if(params.get('pago') === 'cancelado') {
+    window.history.replaceState({}, '', window.location.pathname);
+    toast('Pago cancelado. Puedes intentarlo de nuevo cuando quieras.');
+  }
+})();
 
 // ══ ADMIN EDIT BUTTONS HELPER ══
 function agregarBotonesEditar(card, item, tipo){
@@ -2275,9 +2303,9 @@ document.getElementById('globalAudio').addEventListener('timeupdate',function(){
 document.getElementById('globalAudio').addEventListener('ended',function(){document.getElementById('audioPauseBtn').textContent='>';audioPlaying=false;});
 
 // ══ ONESIGNAL ══
-const ONESIGNAL_APP_ID='TU-APP-ID-ONESIGNAL';
+const ONESIGNAL_APP_ID=''/* Configura en onesignal.com y pega el App ID aquí */;
 async function initOneSignal(){
-  if(typeof OneSignal==='undefined')return;
+  if(typeof OneSignal==='undefined' || !ONESIGNAL_APP_ID)return;
   try{await OneSignal.init({appId:ONESIGNAL_APP_ID,notifyButton:{enable:false},allowLocalhostAsSecureOrigin:true});}catch(e){}
 }
 async function pedirRecordatorioDiario(){
@@ -2304,6 +2332,55 @@ function openModalPago(cursoId,precio,nombre){
   document.getElementById('pagoCoursId').value=cursoId;
   openMo('moPago');
 }
+// procesarPagoDirecto — llamado desde el modal dinámico con id y tipo explícitos
+async function procesarPagoDirecto(metodo, cursoId, tipo, modalEl) {
+  if(!currentUser) {
+    toast('Inicia sesión para continuar');
+    setTimeout(function(){ openMo('moAuth'); }, 800);
+    return;
+  }
+  if(metodo === 'stripe') {
+    toast('Redirigiendo a pago seguro…');
+    try {
+      var res = await fetch('/.netlify/functions/stripe-checkout', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          cursoId: cursoId,
+          userId: currentUser.id,
+          userEmail: currentUser.email,
+          tipo: tipo
+        })
+      });
+      if(res.ok) {
+        var data = await res.json();
+        if(data.url) window.location.href = data.url;
+        else toast('Error al crear sesión de pago');
+      } else {
+        toast('Error al crear sesión de pago. Usa transferencia.');
+      }
+    } catch(e) {
+      toast('Servicio de pago no disponible. Usa transferencia.');
+    }
+  } else if(metodo === 'bizum') {
+    window.open('https://www.matermundi.tv/donar/', '_blank');
+    toast('Completa el pago y envía el justificante a info@matermundi.tv');
+  } else if(metodo === 'transferencia') {
+    // Mostrar instrucciones en el modal dinámico
+    var instrExist = modalEl.querySelector('.trans-instr');
+    if(!instrExist) {
+      var instr = document.createElement('div');
+      instr.className = 'trans-instr';
+      instr.style.cssText = 'background:var(--azul-cl);border-radius:10px;padding:12px;font-size:12px;color:var(--azul-os);margin-top:8px;line-height:1.6';
+      var email = currentUser ? currentUser.email : 'tu email';
+      instr.innerHTML = '<strong>Datos de transferencia:</strong><br>IBAN: ES00 0000 0000 0000 0000 0000<br>Concepto: <strong>Curso · ' + email + '</strong><br><br>📧 Envía el justificante a <strong>info@matermundi.tv</strong> y te damos acceso en 24h.';
+      // Añadir al interior del modal (el último hijo del overlay)
+      var box = modalEl.lastElementChild || modalEl;
+      box.appendChild(instr);
+    }
+  }
+}
+
 async function procesarPago(metodo){
   const cursoId=document.getElementById('pagoCoursId').value;
   if(metodo==='stripe'){
@@ -2316,7 +2393,7 @@ async function procesarPago(metodo){
   } else if(metodo==='bizum'){
     window.open('https://www.matermundi.tv/donar/','_blank');
     toast('Completa el pago y envia el justificante a info@matermundi.tv');
-  } else if(metodo==='transferencia'){
+  } else if(metodo==='transferencia' && false){ // handled by procesarPagoDirecto
     document.getElementById('pagoInstrucciones').classList.remove('hid');
   }
 }
@@ -2629,7 +2706,7 @@ function pedirCodigoItin(id, nombre){
   
   const desc = document.createElement('p');
   desc.style.cssText = 'font-size:12px;color:var(--gris);margin-bottom:16px';
-  desc.textContent = 'Este itinerario es de pago. Introduce el código de acceso que recibiste.';
+  desc.textContent = 'Este itinerario es de pago. Adquiérelo para acceder.';
   
   const input = document.createElement('input');
   input.type = 'text';
@@ -2640,7 +2717,7 @@ function pedirCodigoItin(id, nombre){
   const accederBtn = document.createElement('button');
   accederBtn.textContent = 'Acceder →';
   accederBtn.style.cssText = 'width:100%;background:var(--azul);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px';
-  accederBtn.onclick = (function(cid){ return function(){ verificarCodigoItin(cid); }; })(id);
+  accederBtn.style.display = 'none'; // acceso automático por pago, sin código
   
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancelar';
@@ -2867,15 +2944,24 @@ async function loadDirectos(){
 
 // ══ AGENDA ══
 async function loadEventos(){
-  const l=document.getElementById('listaEventos');
+  var l=document.getElementById('listaEventos');
   if(!sb){renderEvEj(l);return;}
   if(l){l.innerHTML='';l.appendChild(spinEl());}
   try{
-    const hoy=new Date().toISOString().split('T')[0];
-    const{data}=await sb.from('eventos').select('*').eq('activo',true).gte('fecha_inicio',hoy).order('fecha_inicio');
-    if(data&&data.length){renderEv(l,data);}
-    else{renderEvEj(l);}
+    var hoy=new Date().toISOString().split('T')[0];
+    var q=sb.from('eventos').select('*').eq('activo',true).gte('fecha_inicio',hoy).order('fecha_inicio');
+    var tipoAgenda = window._tipoAgenda || 'todos';
+    if(tipoAgenda && tipoAgenda !== 'todos') q = q.eq('tipo', tipoAgenda);
+    var r = await q;
+    if(r.data&&r.data.length){renderEv(l,r.data);}
+    else{l.innerHTML='<div class="empty" style="padding:40px 14px;text-align:center"><p style="color:var(--gris);font-size:13px">No hay eventos de este tipo próximamente</p></div>';}
   }catch(e){renderEvEj(l);}
+}
+function setFiltroAgenda(btn){
+  document.querySelectorAll('#filtrosAgenda .fbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  window._tipoAgenda = btn.dataset.tipo;
+  loadAgenda();
 }
 async function loadLinks(){
   if(!sb)return;
@@ -2907,11 +2993,69 @@ async function guardarLinks(){
 async function loadMiEspacio(){
   const noAuth=document.getElementById('meNoAuth');
   const auth=document.getElementById('meAuth');
-  if(!currentUser){noAuth.classList.remove('hid');auth.classList.add('hid');loadGuardadosLocales();return;}
+  if(!currentUser){noAuth.classList.remove('hid');auth.classList.add('hid');loadGuardados();return;}
   noAuth.classList.add('hid');auth.classList.remove('hid');
   const n=document.getElementById('meNombre');if(n)n.textContent=currentUser.user_metadata&&currentUser.user_metadata.nombre?currentUser.user_metadata.nombre:currentUser.email.split('@')[0];
   const e=document.getElementById('meEmail');if(e)e.textContent=currentUser.email||'';
+  // Mostrar acceso admin solo si es admin
+  var adminCard = document.getElementById('meAdminCard');
+  if(adminCard) adminCard.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
   loadMisItinerarios();
+  loadMisCursos();
+  loadGuardados();
+}
+
+async function loadMisCursos(){
+  // Mostrar cursos/series con acceso pagado
+  var cont = document.getElementById('meCursos');
+  if(!cont || !sb || !currentUser) return;
+  cont.innerHTML = '<div class="spin">Cargando…</div>';
+  try {
+    var r = await sb.from('accesos_curso').select('curso_id, pagado, created_at').eq('user_id', currentUser.id).eq('pagado', true);
+    if(!r.data || !r.data.length){ cont.innerHTML='<p style="font-size:12px;color:var(--gris)">Aún no tienes cursos.</p>'; return; }
+    // Buscar detalles de cada curso
+    var ids = r.data.map(function(a){ return a.curso_id; });
+    var rc = await sb.from('cursos').select('id,nombre,icono,descripcion').in('id', ids);
+    cont.innerHTML = '';
+    (rc.data||[]).forEach(function(c){
+      var card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer';
+      card.innerHTML = '<span style="font-size:28px">'+(c.icono||'🎓')+'</span>'
+        +'<div style="flex:1"><h4 style="font-size:13px;font-weight:600;color:var(--azul-os);margin-bottom:2px">'+esc(c.nombre)+'</h4>'
+        +'<p style="font-size:11px;color:var(--gris)">'+esc(c.descripcion||'')+'</p></div>'
+        +'<span style="font-size:12px;color:var(--azul);font-weight:700">→</span>';
+      card.onclick = function(){ navTo('formacion'); };
+      cont.appendChild(card);
+    });
+    if(!(rc.data||[]).length) cont.innerHTML='<p style="font-size:12px;color:var(--gris)">Sin cursos activos.</p>';
+  } catch(e){ cont.innerHTML=''; }
+}
+
+async function loadGuardados(){
+  var l = document.getElementById('guardadosLista'); if(!l) return;
+  var items = [];
+  // Supabase si hay usuario
+  if(sb && currentUser){
+    try{
+      var r = await sb.from('guardados').select('*').eq('user_id', currentUser.id).order('created_at',{ascending:false}).limit(30);
+      items = (r.data||[]).map(function(g){ return {id:g.item_id, titulo:g.titulo, tipo:g.tipo, url:g.url, imagen_url:g.imagen_url, descripcion:g.descripcion}; });
+      // Sincronizar también con localStorage
+      localStorage.setItem('mm_guardados', JSON.stringify(items));
+    }catch(e){}
+  }
+  // Fallback localStorage
+  if(!items.length){
+    try{ items = JSON.parse(localStorage.getItem('mm_guardados')||'[]'); }catch(e){}
+  }
+  if(!items.length){ l.innerHTML='<p style="font-size:12px;color:var(--gris)">Nada guardado todavía.</p>'; return; }
+  l.innerHTML='';
+  items.forEach(function(v){
+    var tipoLabel = v.tipo==='youtube'?'vid':v.tipo==='audio'?'aud':v.tipo==='pdf'?'pdf':'doc';
+    var card=document.createElement('div'); card.className='serie-card';
+    card.innerHTML='<div class="serie-ico">'+tipoLabel+'</div><div class="serie-info"><h3>'+esc(v.titulo||'Sin título')+'</h3></div>';
+    card.onclick=function(){ playVid(v.titulo,v.url||'',v.descripcion||'',v.tipo||'youtube'); };
+    l.appendChild(card);
+  });
 }
 async function loadMisItinerarios(){
   const l=document.getElementById('meItinerarios');
@@ -2937,20 +3081,7 @@ async function loadMisItinerarios(){
     });
   }catch(e){l.innerHTML='<p style="font-size:12px;color:red">'+e.message+'</p>';}
 }
-function loadGuardadosLocales(){
-  try{
-    const saved=JSON.parse(localStorage.getItem('mm_guardados')||'[]');
-    const l=document.getElementById('guardadosLista');if(!l)return;
-    if(!saved.length){l.innerHTML='<p style="font-size:12px;color:var(--gris)">Nada guardado todavia.</p>';return;}
-    l.innerHTML='';
-    saved.forEach(function(v){
-      const card=document.createElement('div');card.className='serie-card';
-      card.innerHTML='<div class="serie-ico">'+(v.tipo==='youtube'?'vid':v.tipo==='audio'?'aud':v.tipo==='pdf'?'pdf':'doc')+'</div><div class="serie-info"><h3>'+esc(v.titulo)+'</h3></div>';
-      card.onclick=function(){playVid(v.titulo,v.url||'',v.descripcion||'',v.tipo||'youtube');};
-      l.appendChild(card);
-    });
-  }catch(e){}
-}
+function loadGuardadosLocales(){ loadGuardados(); } // alias legacy
 
 // ══ NOTICIAS ══
 async function loadNoticias(){
@@ -2998,7 +3129,7 @@ async function loadNoticias(){
     ];
   }
 
-  // Render cards
+  // Render cards como carrusel con imagen
   scroll.innerHTML = '';
   data.forEach(function(n){
     var card = document.createElement('div');
@@ -3076,7 +3207,32 @@ function renderNoticiaScroll(scroll, data){
 
 // ══ UTILS MISSING ══
 function isSaved(id){try{return JSON.parse(localStorage.getItem('mm_guardados')||'[]').some(function(x){return x.id===id;});}catch(e){return false;}}
-function toggleGuardado(v){try{var s=JSON.parse(localStorage.getItem('mm_guardados')||'[]');var idx=s.findIndex(function(x){return x.id===v.id;});if(idx>-1){s.splice(idx,1);toast('Eliminado de guardados');}else{s.unshift(v);toast('❤️ Guardado');}localStorage.setItem('mm_guardados',JSON.stringify(s.slice(0,50)));if(curPage==='miespacio')loadGuardadosLocales();}catch(e){}}
+async function toggleGuardado(v){
+  // Local siempre
+  try{
+    var s=JSON.parse(localStorage.getItem('mm_guardados')||'[]');
+    var idx=s.findIndex(function(x){return x.id===v.id;});
+    if(idx>-1){s.splice(idx,1);}else{s.unshift(v);}
+    localStorage.setItem('mm_guardados',JSON.stringify(s.slice(0,50)));
+  }catch(e){}
+  // Supabase si hay usuario
+  if(sb && currentUser){
+    try{
+      var existe = await sb.from('guardados').select('id').eq('user_id',currentUser.id).eq('item_id',v.id).maybeSingle();
+      if(existe.data){
+        await sb.from('guardados').delete().eq('user_id',currentUser.id).eq('item_id',v.id);
+        toast('Eliminado de guardados');
+      } else {
+        await sb.from('guardados').insert({user_id:currentUser.id, item_id:v.id, titulo:v.titulo||'', tipo:v.tipo||'youtube', url:v.url||'', imagen_url:v.imagen_url||'', descripcion:v.descripcion||''});
+        toast('❤️ Guardado');
+      }
+    }catch(e){ toast('❤️ Guardado'); }
+  } else {
+    var s2=JSON.parse(localStorage.getItem('mm_guardados')||'[]');
+    toast(s2.some(function(x){return x.id===v.id;}) ? '❤️ Guardado' : 'Eliminado de guardados');
+  }
+  if(curPage==='miespacio') loadGuardados();
+}
 
 function ytId(url){if(!url)return null;var m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);return m?m[1]:null;}
 function spinEl(){var d=document.createElement('div');d.className='spin';d.textContent='Cargando...';return d;}
