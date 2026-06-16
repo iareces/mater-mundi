@@ -1951,77 +1951,137 @@ function compartirReelYid(yid, titulo){
 }
 
 // ══ RETO DE ORACIÓN ══
-var RETO_DIAS = 21;
+// Usa el mismo motor que los itinerarios — reutiliza pasoProgreso y togglePasoEn
+var retoItinId = null;
+var retoPasos = [];
+
 async function loadReto(){
   var cont = document.getElementById('retoDays'); if(!cont) return;
   cont.innerHTML = '<div class="spin">Cargando…</div>';
-  // Cargar días del reto desde Supabase (itinerario especial con codigo='reto-oracion')
-  var dias = [];
-  if(sb){
-    try{
-      var ri = await sb.from('itinerarios').select('id').eq('codigo','reto-oracion').maybeSingle();
-      if(ri.data){
-        var rp = await sb.from('itinerario_pasos').select('*').eq('itinerario_id',ri.data.id).order('orden');
-        if(rp.data) dias = rp.data;
-      }
-    }catch(e){}
-  }
-  // Progreso guardado local
-  var prog = {};
-  try{ prog = JSON.parse(localStorage.getItem('mm_reto')||'{}'); }catch(e){}
-  // Si hay usuario, cargar de Supabase
-  if(sb && currentUser){
-    try{
-      var rpr = await sb.from('progreso_itinerario').select('paso_id').eq('user_id',currentUser.id);
-      if(rpr.data) rpr.data.forEach(function(p){ prog[p.paso_id]=true; });
-    }catch(e){}
-  }
-  var completados = Object.keys(prog).length;
-  // Si no hay días configurados, mostrar plantilla de 21 días
-  if(!dias.length){
-    for(var i=1;i<=RETO_DIAS;i++) dias.push({id:'day'+i, orden:i, titulo:'Día '+i+': Por configurar', contenido:''});
-  }
-  // Progress bar
-  var pct = Math.min(100, Math.round(completados/RETO_DIAS*100));
+
+  // 1. Cargar itinerario reto-oracion
+  if(!sb){ cont.innerHTML='<p style="padding:14px;color:var(--gris);font-size:13px">Sin conexión</p>'; return; }
+  try{
+    var ri = await sb.from('itinerarios').select('id,nombre').eq('codigo','reto-oracion').maybeSingle();
+    if(!ri.data){ cont.innerHTML='<p style="padding:14px;color:var(--gris);font-size:13px">El reto aún no está configurado</p>'; return; }
+    retoItinId = ri.data.id;
+    itinActual = ri.data; // necesario para togglePasoEn
+
+    // 2. Cargar pasos
+    var rp = await sb.from('itinerario_pasos').select('*').eq('itinerario_id',retoItinId).order('orden');
+    retoPasos = rp.data || [];
+
+    // 3. Cargar progreso — igual que en itinerarios
+    pasoProgreso = {};
+    if(currentUser){
+      var rpr = await sb.from('progreso_itinerario').select('paso_id,completado')
+        .eq('user_id',currentUser.id).eq('itinerario_id',retoItinId);
+      if(rpr.data) rpr.data.forEach(function(p){ pasoProgreso[p.paso_id]=p.completado; });
+    } else {
+      try{ pasoProgreso = JSON.parse(localStorage.getItem('itin_prog_'+retoItinId)||'{}'); }catch(e){}
+    }
+  }catch(e){ cont.innerHTML='<p style="padding:14px;color:var(--gris);font-size:13px">Error al cargar el reto</p>'; return; }
+
+  // 4. Actualizar barra de progreso
+  var completados = retoPasos.filter(function(p){ return pasoProgreso[p.id]; }).length;
+  var pct = retoPasos.length ? Math.round(completados/retoPasos.length*100) : 0;
   var fill = document.getElementById('retoProgFill'); if(fill) fill.style.width=pct+'%';
-  var txt = document.getElementById('retoProgText'); if(txt) txt.textContent=completados+' de '+RETO_DIAS+' días completados';
-  // Render días
+  var txt = document.getElementById('retoProgText'); if(txt) txt.textContent=completados+' de '+retoPasos.length+' días completados';
+
+  // 5. Render — igual que renderPasosItin pero en #retoDays
+  renderRetoDias(retoPasos);
+}
+
+function renderRetoDias(pasos){
+  var cont = document.getElementById('retoDays'); if(!cont) return;
   cont.innerHTML = '';
-  dias.forEach(function(d){
-    var done = !!prog[d.id];
-    var row = document.createElement('div');
-    row.className = 'reto-day' + (done?' done':'');
-    row.innerHTML = '<div class="reto-day-num">'+(done?'✓':d.orden)+'</div>'
-      +'<div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--azul-os)">'+esc(d.titulo)+'</p>'
-      +(d.contenido?'<p style="font-size:11px;color:var(--gris);margin-top:2px">'+esc(d.contenido.substring(0,60))+'…</p>':'')+'</div>'
-      +(done?'<span style="color:var(--azul);font-size:16px">✅</span>':'<span style="color:var(--gris);font-size:16px">›</span>');
-    row.onclick = (function(dia, isDone){ return function(){ abrirDiaReto(dia, isDone); }; })(d, done);
-    cont.appendChild(row);
+
+  pasos.forEach(function(p, i){
+    var isDone = pasoProgreso[p.id]||false;
+    var isUnlocked = i===0 || pasoProgreso[pasos[i-1].id];
+    var isLocked = !isUnlocked;
+
+    var card = document.createElement('div');
+    card.style.cssText = 'background:'+(isLocked?'#f8f8f8':'#fff')+';border:1.5px solid '+(isDone?'var(--azul)':isLocked?'#e0e0e0':'var(--borde)')+';border-radius:12px;overflow:hidden;margin:0 14px 10px;opacity:'+(isLocked?'0.55':'1');
+
+    // Cabecera
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px;cursor:'+(isLocked?'default':'pointer');
+
+    var num = document.createElement('div');
+    num.style.cssText = 'width:36px;height:36px;border-radius:50%;background:'+(isDone?'var(--azul)':isLocked?'#ccc':'var(--azul-cl)')+';display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:'+(isDone||isLocked?'#fff':'var(--azul)')+';flex-shrink:0';
+    num.textContent = isDone?'✓':isLocked?'🔒':(i+1);
+
+    var info = document.createElement('div'); info.style.cssText='flex:1;min-width:0';
+    info.innerHTML = '<h4 style="font-size:13px;font-weight:600;color:'+(isLocked?'#999':isDone?'var(--gris)':'var(--azul-os)')+';text-decoration:'+(isDone?'line-through':'none')+'">'+esc(p.titulo)+'</h4>';
+    if(isLocked){
+      info.innerHTML += '<p style="font-size:11px;color:#bbb;margin-top:2px">Completa el día anterior para desbloquear</p>';
+    }
+
+    hdr.appendChild(num); hdr.appendChild(info);
+
+    // Botón completar/desmarcar (solo si desbloqueado)
+    if(!isLocked){
+      var btn = document.createElement('button');
+      btn.style.cssText = 'background:'+(isDone?'rgba(30,123,196,0.1)':'var(--azul)')+';color:'+(isDone?'var(--azul)':'#fff')+';border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit';
+      btn.textContent = isDone?'↺ Desmarcar':'✓ Completado';
+      btn.onclick = (function(pid){ return function(e){
+        e.stopPropagation();
+        toggleRetoDay(pid);
+      }; })(p.id);
+      hdr.appendChild(btn);
+    }
+
+    card.appendChild(hdr);
+
+    // Contenido completo (solo si desbloqueado)
+    if(!isLocked && p.contenido){
+      var body = document.createElement('div');
+      body.style.cssText = 'padding:0 14px 14px;font-size:13px;color:var(--texto);line-height:1.7;white-space:pre-wrap;border-top:1px solid var(--borde);margin-top:2px;padding-top:12px';
+      body.textContent = p.contenido;
+      card.appendChild(body);
+
+      // Si hay URL de YouTube en url_recurso
+      if(p.url_recurso && p.tipo_recurso==='youtube'){
+        var yid = ytId(p.url_recurso);
+        if(yid){
+          var vid = document.createElement('div');
+          vid.style.cssText='padding:0 14px 14px';
+          vid.innerHTML='<div style="position:relative;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000"><iframe src="https://www.youtube.com/embed/'+yid+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen loading="lazy"></iframe></div>';
+          card.appendChild(vid);
+        }
+      }
+    }
+
+    cont.appendChild(card);
   });
 }
 
-function abrirDiaReto(dia, done){
-  // Abrir contenido del día — si tiene URL de YouTube, reproducirlo
-  var yid = ytId(dia.contenido||'');
-  if(yid){ playVid(dia.titulo, dia.contenido, '', 'youtube', dia.id); }
-  else if(dia.contenido){
-    toast(dia.titulo+': '+dia.contenido.substring(0,100));
-  } else {
-    toast('Este día aún no tiene contenido configurado');
-    return;
-  }
-  // Marcar como completado
-  if(!done){
+async function toggleRetoDay(pasoId){
+  pasoProgreso[pasoId] = !pasoProgreso[pasoId];
+  // Guardar en Supabase si hay usuario
+  if(sb && currentUser && retoItinId){
     try{
-      var prog = JSON.parse(localStorage.getItem('mm_reto')||'{}');
-      prog[dia.id] = true;
-      localStorage.setItem('mm_reto', JSON.stringify(prog));
+      if(pasoProgreso[pasoId]){
+        await sb.from('progreso_itinerario').upsert(
+          {user_id:currentUser.id, itinerario_id:retoItinId, paso_id:pasoId, completado:true},
+          {onConflict:'user_id,paso_id'}
+        );
+      } else {
+        await sb.from('progreso_itinerario').delete()
+          .eq('user_id',currentUser.id).eq('paso_id',pasoId);
+      }
     }catch(e){}
-    if(sb && currentUser && dia.id.length > 5){
-      sb.from('progreso_itinerario').upsert({user_id:currentUser.id, paso_id:dia.id, itinerario_id:dia.itinerario_id||null, completado:true},{onConflict:'user_id,paso_id'}).then(function(){});
-    }
-    setTimeout(loadReto, 500);
   }
+  // Guardar local siempre
+  try{ localStorage.setItem('itin_prog_'+retoItinId, JSON.stringify(pasoProgreso)); }catch(e){}
+  toast(pasoProgreso[pasoId]?'✓ Día completado':'Día desmarcado');
+  // Actualizar progreso y re-render
+  var completados = retoPasos.filter(function(p){ return pasoProgreso[p.id]; }).length;
+  var pct = retoPasos.length ? Math.round(completados/retoPasos.length*100) : 0;
+  var fill = document.getElementById('retoProgFill'); if(fill) fill.style.width=pct+'%';
+  var txt = document.getElementById('retoProgText'); if(txt) txt.textContent=completados+' de '+retoPasos.length+' días completados';
+  renderRetoDias(retoPasos);
 }
 
 // ══ ADMIN EDIT BUTTONS HELPER ══
