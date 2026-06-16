@@ -1751,20 +1751,15 @@ function pedirCodigoAcceso(id, tipo, nombre, precio){
     setTimeout(function(){openMo('moAuth');},800);
     return;
   }
-  // Check if already has access
+  // Check if already has access — siempre en accesos_curso (curso_id sirve para cursos, series e itinerarios)
   if(sb){
-    const tabla = tipo==='serie'||tipo==='curso' ? 'accesos_curso' : 'progreso_itinerario';
-    const campo = tipo==='serie'||tipo==='curso' ? 'curso_id' : 'itinerario_id';
-    sb.from(tabla).select('id').eq('user_id',currentUser.id).eq(campo,id).eq('pagado',true).maybeSingle()
+    sb.from('accesos_curso').select('id').eq('user_id',currentUser.id).eq('curso_id',id).eq('pagado',true).maybeSingle()
       .then(function(r){
         if(r.data){
           // Ya tiene acceso — abrir directamente sin pedir pago
           if(tipo==='itinerario') {
-            sb.from('itinerarios').select('*,itinerario_pasos(*)').eq('id',id).maybeSingle().then(function(ri){
-              if(ri.data) abrirItinData(ri.data);
-            });
+            accederItinDirecto(id);
           } else {
-            // Para cursos/series, navegar a la sección de formación con el curso abierto
             navTo('formacion');
             toast('✅ Contenido desbloqueado');
           }
@@ -2948,11 +2943,9 @@ function renderItinLista(l,items){
       '<span style="font-size:20px;color:var(--gris);align-self:center">'+(gratis?'→':'🔒')+'</span>';
     card.onclick=function(){
       if(gratis){
-        // Access directly without code
         accederItinDirecto(it.id);
       } else {
-        // Ask for code
-        pedirCodigoItin(it.id, it.nombre);
+        pedirCodigoAcceso(it.id, 'itinerario', it.nombre, it.precio);
       }
     };
     // Admin edit buttons
@@ -4097,6 +4090,7 @@ function openMItin(it) {
   var g = function(id){return document.getElementById(id)||{value:''};};
   g('itinNom').value=it?it.nombre:''; g('itinCod').value=it?it.codigo:'';
   g('itinDesc').value=it?it.descripcion||'':'';
+  g('itinPrecio').value=it?(it.precio||0):0;
   var ac=document.getElementById('itinActivo'); if(ac) ac.checked=it?it.activo!==false:true;
   mo.classList.add('open');
 }
@@ -4107,7 +4101,9 @@ async function saveItin() {
   var nombre=(document.getElementById('itinNom')||{value:''}).value.trim();
   var codigo=(document.getElementById('itinCod')||{value:''}).value.trim().toUpperCase();
   if(!nombre||!codigo) return toast('Nombre y código son obligatorios');
-  var payload={nombre:nombre,codigo:codigo,descripcion:(document.getElementById('itinDesc')||{value:''}).value.trim(),activo:true};
+  var precio = parseFloat((document.getElementById('itinPrecio')||{value:0}).value)||0;
+  var ac=document.getElementById('itinActivo');
+  var payload={nombre:nombre,codigo:codigo,descripcion:(document.getElementById('itinDesc')||{value:''}).value.trim(),precio:precio,activo:ac?ac.checked:true};
   var r = id ? await sb.from('itinerarios').update(payload).eq('id',id) : await sb.from('itinerarios').insert(payload);
   if(r.error) return toast('Error: '+(r.error.message.includes('unique')?'Ese código ya existe':r.error.message));
   if(mo) mo.classList.remove('open');
