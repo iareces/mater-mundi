@@ -6,11 +6,6 @@
   node_bundler = "esbuild"
 
 [[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-
-[[redirects]]
   from = "/icon-192.png"
   to = "/icon-192.png"
   status = 200
