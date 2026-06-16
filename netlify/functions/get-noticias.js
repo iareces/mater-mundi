@@ -1,10 +1,15 @@
 // netlify/functions/get-noticias.js
 // Hace la llamada a la WordPress API desde el servidor, sin problema de CORS
 
-exports.handler = async () => {
+exports.handler = async (event) => {
   try {
-    const WP_URL = 'https://www.matermundi.tv/wp-json/wp/v2/posts?per_page=8&_fields=id,title,link,_embedded&_embed=wp:featuredmedia';
-    
+    // Marcador de versión para confirmar despliegue
+    if (event && event.queryStringParameters && event.queryStringParameters.v) {
+      return { statusCode: 200, body: JSON.stringify({ version: 'v2-debug-2026-06-16' }) };
+    }
+
+    const WP_URL = 'https://www.matermundi.tv/wp-json/wp/v2/posts?per_page=8&_embed=wp:featuredmedia&_fields=id,title,link,_links,_embedded,content';
+
     const res = await fetch(WP_URL, {
       headers: { 'User-Agent': 'MatermundiApp/1.0' }
     });
@@ -15,9 +20,27 @@ exports.handler = async () => {
 
     const posts = await res.json();
 
+    // Modo debug: ?debug=1 muestra la estructura cruda del primer post
+    if (event && event.queryStringParameters && event.queryStringParameters.debug) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_post_keys: Object.keys(posts[0] || {}),
+          embedded: posts[0] ? posts[0]._embedded : null,
+          links: posts[0] ? posts[0]._links : null
+        }, null, 2)
+      };
+    }
+
     const noticias = posts.map(function(p) {
       var img = '';
       try { img = p._embedded['wp:featuredmedia'][0].source_url || ''; } catch(e) {}
+      // Fallback: extraer primera imagen del contenido si no hay featured media
+      if (!img && p.content && p.content.rendered) {
+        var match = p.content.rendered.match(/<img[^>]+src=["']([^"']+)["']/);
+        if (match) img = match[1];
+      }
       var titulo = (p.title && p.title.rendered || '')
         .replace(/&amp;/g, '&')
         .replace(/&#8217;/g, "'")
