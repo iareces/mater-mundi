@@ -8,6 +8,17 @@
 <meta name="apple-mobile-web-app-title" content="Mater Mundi"/>
 <meta name="theme-color" content="#1A3A6E"/>
 <meta name="description" content="Mater Mundi TV · Testimonios · Formación · Evangelización"/>
+<link rel="icon" type="image/png" href="icon-192.png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<meta property="og:title" content="Mater Mundi TV"/>
+<meta property="og:description" content="Testimonios, formación y evangelización católica en un solo lugar."/>
+<meta property="og:image" content="https://mater-mundi.netlify.app/icon-512.png"/>
+<meta property="og:url" content="https://mater-mundi.netlify.app"/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Mater Mundi TV"/>
+<meta name="twitter:description" content="Testimonios, formación y evangelización católica en un solo lugar."/>
+<meta name="twitter:image" content="https://mater-mundi.netlify.app/icon-512.png"/>
 <title>Mater Mundi TV</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -599,6 +610,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     </div>
     <div class="adm-sec" id="aEventos">
       <button class="btn-add" onclick="openME()">+ Nuevo evento</button>
+      <button class="btn-add" style="background:var(--azul-cl);color:var(--azul-os);margin-top:6px" onclick="abrirPanelInscripciones()">👥 Ver todas las inscripciones</button>
       <div id="admEList"><div class="spin">Cargando…</div></div>
     </div>
     <div class="adm-sec" id="aLinks">
@@ -790,7 +802,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     </div>
     <div style="padding:0 14px">
       <p style="font-size:13px;font-weight:600;color:var(--azul-os);margin-bottom:10px">Guardados</p>
-      <div id="guardadosLista"><p style="font-size:12px;color:var(--gris)">Nada guardado todavía.</p></div>
+      <div id="guardadosListaNoAuth"><p style="font-size:12px;color:var(--gris)">Nada guardado todavía.</p></div>
     </div>
   </div>
   <div id="meAuth" class="hid">
@@ -1053,14 +1065,40 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <div class="mfg"><label>Fecha fin</label><input type="date" id="feff"/></div>
     </div>
     <div class="mf-row">
-      <div class="mfg"><label>Tipo</label><select id="feti"><option value="retiro">🔥 Retiro</option><option value="mision">✝️ Misión</option><option value="curso">🎓 Curso</option><option value="otro">📌 Otro</option></select></div>
+      <div class="mfg"><label>Tipo</label><select id="eti"><option value="retiro">🔥 Retiro</option><option value="mision">✝️ Misión</option><option value="curso">🎓 Curso</option><option value="congreso">🎤 Congreso</option><option value="otro">📌 Otro</option></select></div>
       <div class="mfg"><label>Lugar</label><input type="text" id="fel" placeholder="Ciudad…"/></div>
     </div>
-    <div class="mfg"><label>URL inscripción</label><input type="url" id="feu" placeholder="https://…"/></div>
+    <div class="mfg"><label>URL inscripción externa (opcional)</label><input type="url" id="feu" placeholder="https://…"/></div>
+    <p style="font-size:10px;color:var(--gris);margin-top:-6px">Si lo dejas vacío, se usará el formulario interno de la app.</p>
     <div class="form-btns">
       <button class="btn-can" onclick="cxMo('moFE')">Cancelar</button>
       <button class="btn-sav" onclick="saveEvento()">💾 Guardar</button>
     </div>
+  </div>
+</div>
+
+<!-- Mini-formulario de inscripción a evento -->
+<div class="mo bot" id="moInscribirEv" onclick="if(event.target===this)cxMo('moInscribirEv')">
+  <div class="mf">
+    <h3 id="inscEvTit">Inscripción <button class="btn-x" onclick="cxMo('moInscribirEv')">✕</button></h3>
+    <p style="font-size:12px;color:var(--gris);margin-bottom:14px" id="inscEvDesc"></p>
+    <input type="hidden" id="inscEventoId"/>
+    <div class="mfg"><label>Nombre *</label><input type="text" id="inscNombre" placeholder="Tu nombre completo"/></div>
+    <div class="mfg"><label>Email *</label><input type="email" id="inscEmail" placeholder="tu@email.com"/></div>
+    <div class="mfg"><label>Teléfono (opcional)</label><input type="tel" id="inscTelefono" placeholder="600 000 000"/></div>
+    <div class="mfg"><label>Notas (opcional)</label><textarea id="inscNotas" placeholder="Alguna pregunta o comentario…"></textarea></div>
+    <div class="form-btns">
+      <button class="btn-can" onclick="cxMo('moInscribirEv')">Cancelar</button>
+      <button class="btn-sav" id="inscBtnEnviar" onclick="enviarInscripcionEvento()">✅ Confirmar inscripción</button>
+    </div>
+  </div>
+</div>
+
+<!-- Panel completo de inscripciones (admin) -->
+<div class="mo bot" id="moInscripcionesPanel" onclick="if(event.target===this)cxMo('moInscripcionesPanel')">
+  <div class="mf" style="max-height:80vh;overflow-y:auto">
+    <h3>👥 Inscripciones a eventos <button class="btn-x" onclick="cxMo('moInscripcionesPanel')">✕</button></h3>
+    <div id="inscripcionesPanelList"><div class="spin">Cargando…</div></div>
   </div>
 </div>
 
@@ -1103,35 +1141,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
 
 
 <!-- MODAL PAGO -->
-<div class="mo" id="moPago" onclick="if(event.target===this)cxMo('moPago')">
-  <div style="background:#fff;border-radius:16px;width:100%;max-width:380px;padding:24px 20px;box-shadow:0 20px 60px rgba(26,58,110,0.3)">
-    <div style="text-align:center;margin-bottom:20px">
-      <p style="font-size:32px;margin-bottom:8px">🎓</p>
-      <h2 style="font-family:Playfair Display,serif;font-size:22px;color:var(--azul-os);margin-bottom:4px" id="pagoNombre"></h2>
-      <p style="font-size:28px;font-weight:700;color:var(--azul);margin-bottom:4px" id="pagoPrecio"></p>
-      <p style="font-size:11px;color:var(--gris)">Pago único · Acceso de por vida</p>
-    </div>
-    <input type="hidden" id="pagoCoursId"/>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-      <button onclick="procesarPago('stripe')" style="background:var(--azul);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
-        💳 Pagar con tarjeta
-      </button>
-      <button onclick="procesarPago('bizum')" style="background:#00B4D8;color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
-        📱 Pagar con Bizum
-      </button>
-      <button onclick="procesarPago('transferencia')" style="background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
-        🏦 Transferencia bancaria
-      </button>
-    </div>
-    <div id="pagoInstrucciones" class="hid" style="background:var(--azul-cl);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;color:var(--azul-os);line-height:1.6">
-      <p style="font-weight:700;margin-bottom:6px">Instrucciones de transferencia:</p>
-      <p>Banco: CaixaBank<br/>IBAN: ES00 0000 0000 0000 0000 0000<br/>Concepto: <strong>Curso + tu email</strong><br/>Importe: el precio del curso</p>
-      <p style="margin-top:8px">Envía el justificante a <strong>info@matermundi.tv</strong> y te activamos el acceso en 24h.</p>
-      <button onclick="confirmarPagoManual()" style="background:var(--azul);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:10px;width:100%">✅ He realizado la transferencia</button>
-    </div>
-    <button onclick="cxMo('moPago')" style="width:100%;background:none;border:none;color:var(--gris);font-size:13px;cursor:pointer;font-family:inherit;padding:6px">Cancelar</button>
-  </div>
-</div>
+
 
 
 <!-- ═══ AUDIO PLAYER GLOBAL ═══ -->
@@ -1471,7 +1481,7 @@ function renderAdmList(l, items, tipo){
       title='📅 '+(item.titulo||'');
       subtitle=(item.fecha_inicio||'')+' · '+(item.tipo||'');
     } else if(tipo==='oracion'){
-      title='🙏 Día '+(item.dia_numero||'')+' — '+(item.texto||'').substring(0,40)+'…';
+      title='🙏 Día '+(item.dia||'')+' — '+(item.texto||'').substring(0,40)+'…';
       subtitle=item.referencia||item.autor||'';
     } else if(tipo==='noticia'){
       title='📰 '+(item.titulo||'');
@@ -1715,10 +1725,10 @@ function renderEvDiaAdmin(){
     // Find today's oracion and open edit modal
     const hoy = new Date().getDay()+1;
     if(sb){
-      sb.from('oracion_dia').select('*').eq('dia_numero',hoy).maybeSingle()
-        .then(function(r){ openMOracion(r.data || {dia_numero:hoy}); });
+      sb.from('oracion_dia').select('*').eq('dia',hoy).maybeSingle()
+        .then(function(r){ openMOracion(r.data || {dia:hoy}); });
     } else {
-      openMOracion({dia_numero:hoy, texto:'', referencia:''});
+      openMOracion({dia:hoy, texto:'', referencia:''});
     }
   };
   box.appendChild(eb);
@@ -2474,7 +2484,7 @@ async function loadEvDia(){
   if(!sb)return;
   try{
     const dia=hoy.getDay()+1;
-    const{data}=await sb.from('oracion_dia').select('*').eq('dia_numero',dia).maybeSingle();
+    const{data}=await sb.from('oracion_dia').select('*').eq('dia',dia).maybeSingle();
     if(data){
       document.getElementById('evTxt').textContent='«'+data.texto+'»';
       document.getElementById('evRef').textContent='— '+(data.referencia||data.autor||'');
@@ -2495,7 +2505,7 @@ async function abrirLectio(){
   if(sb){
     try{
       const dia=hoy.getDay()+1;
-      const{data}=await sb.from('oracion_dia').select('*').eq('dia_numero',dia).maybeSingle();
+      const{data}=await sb.from('oracion_dia').select('*').eq('dia',dia).maybeSingle();
       if(data){
         const lRefl=document.getElementById('lectioReflexion');
         const lPreg=document.getElementById('lectioPregunta');
@@ -2567,19 +2577,6 @@ async function pedirRecordatorioDiario(){
 }
 
 // ══ STRIPE PAGOS ══
-const STRIPE_KEY='pk_test_TU_CLAVE_PUBLICA_STRIPE';
-let stripeInstance=null;
-function getStripe(){if(!stripeInstance&&typeof Stripe!=='undefined')stripeInstance=Stripe(STRIPE_KEY);return stripeInstance;}
-async function comprarCurso(cursoId,precio,nombre){
-  if(!currentUser){toast('Debes iniciar sesion para comprar');setTimeout(()=>openMo('moAuth'),800);return;}
-  openModalPago(cursoId,precio,nombre);
-}
-function openModalPago(cursoId,precio,nombre){
-  document.getElementById('pagoNombre').textContent=nombre;
-  document.getElementById('pagoPrecio').textContent=precio+'eu';
-  document.getElementById('pagoCoursId').value=cursoId;
-  openMo('moPago');
-}
 // procesarPagoDirecto — llamado desde el modal dinámico con id y tipo explícitos
 async function procesarPagoDirecto(metodo, cursoId, tipo, modalEl) {
   if(!currentUser) {
@@ -2628,24 +2625,6 @@ async function procesarPagoDirecto(metodo, cursoId, tipo, modalEl) {
     }
   }
 }
-
-async function procesarPago(metodo){
-  const cursoId=document.getElementById('pagoCoursId').value;
-  if(metodo==='stripe'){
-    toast('Redirigiendo a pago seguro...');
-    try{
-      const res=await fetch('/.netlify/functions/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cursoId,userId:currentUser.id,email:currentUser.email})});
-      if(res.ok){const{url}=await res.json();window.location.href=url;}
-      else toast('Error al crear sesion de pago. Contacta con nosotros.');
-    }catch(e){toast('Servicio de pago no configurado aun. Usa transferencia.');}
-  } else if(metodo==='bizum'){
-    window.open('https://www.matermundi.tv/donar/','_blank');
-    toast('Completa el pago y envia el justificante a info@matermundi.tv');
-  } else if(metodo==='transferencia' && false){ // handled by procesarPagoDirecto
-    document.getElementById('pagoInstrucciones').classList.remove('hid');
-  }
-}
-async function confirmarPagoManual(){cxMo('moPago');toast('Solicitud enviada. Te confirmaremos el acceso en 24h.');}
 
 // ══ TESTIMONIOS ══
 function debounceT(){clearTimeout(window._dt);window._dt=setTimeout(loadT,350);}
@@ -2868,12 +2847,6 @@ function renderCursos(l,items){
 
 function renderSeriesEj(l){renderSeries(l,[{nombre:'Las Cosas Claras',descripcion:'Formacion con P. Valentin Aparicio',icono:'tv',url_playlist:'https://youtube.com/playlist?list=PLLAWlvKGl7XE4uhENls54FVtkf5SYlRhr'},{nombre:'Compendio del Catecismo',descripcion:'Mons. Munilla explica el catecismo',icono:'libro',url_playlist:'https://youtube.com/playlist?list=PLLAWlvKGl7XFJDYv2hQ-2PEAxk9Zteyxo'}]);}
 function renderCursosEj(l){renderCursos(l,[{id:'c1',nombre:'Evangelizacion Kerygmatica',descripcion:'Primer anuncio del Evangelio',icono:'cruz',precio:19.99},{id:'c2',nombre:'Oracion contemplativa',descripcion:'Profundizar en la oracion interior',icono:'manos',precio:14.99}]);}
-function abrirCurso(id,esPago,precio,nombre){
-  if(!esPago){toast('Abriendo curso...');return;}
-  if(!currentUser){toast('Inicia sesion para comprar');setTimeout(()=>openMo('moAuth'),800);return;}
-  if(sb){sb.from('accesos_curso').select('id').eq('user_id',currentUser.id).eq('curso_id',id).eq('pagado',true).maybeSingle().then(function(r){if(r.data)toast('Ya tienes acceso a este curso');else comprarCurso(id,precio,nombre);});}
-  else comprarCurso(id,precio,nombre);
-}
 async function loadFVids(){
   const g=document.getElementById('gridFV');
   if(!sb){renderVEj(g);return;}
@@ -3242,7 +3215,7 @@ function setFiltroAgenda(btn){
   document.querySelectorAll('#filtrosAgenda .fbtn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
   window._tipoAgenda = btn.dataset.tipo;
-  loadAgenda();
+  loadEventos();
 }
 async function loadLinks(){
   if(!sb)return;
@@ -3313,7 +3286,9 @@ async function loadMisCursos(){
 }
 
 async function loadGuardados(){
-  var l = document.getElementById('guardadosLista'); if(!l) return;
+  var l = document.getElementById('guardadosLista');
+  var lNoAuth = document.getElementById('guardadosListaNoAuth');
+  if(!l && !lNoAuth) return;
   var items = [];
   // Supabase si hay usuario
   if(sb && currentUser){
@@ -3328,14 +3303,17 @@ async function loadGuardados(){
   if(!items.length){
     try{ items = JSON.parse(localStorage.getItem('mm_guardados')||'[]'); }catch(e){}
   }
-  if(!items.length){ l.innerHTML='<p style="font-size:12px;color:var(--gris)">Nada guardado todavía.</p>'; return; }
-  l.innerHTML='';
-  items.forEach(function(v){
-    var tipoLabel = v.tipo==='youtube'?'vid':v.tipo==='audio'?'aud':v.tipo==='pdf'?'pdf':'doc';
-    var card=document.createElement('div'); card.className='serie-card';
-    card.innerHTML='<div class="serie-ico">'+tipoLabel+'</div><div class="serie-info"><h3>'+esc(v.titulo||'Sin título')+'</h3></div>';
-    card.onclick=function(){ playVid(v.titulo,v.url||'',v.descripcion||'',v.tipo||'youtube'); };
-    l.appendChild(card);
+  var targets = [l, lNoAuth].filter(Boolean);
+  targets.forEach(function(target){
+    if(!items.length){ target.innerHTML='<p style="font-size:12px;color:var(--gris)">Nada guardado todavía.</p>'; return; }
+    target.innerHTML='';
+    items.forEach(function(v){
+      var tipoLabel = v.tipo==='youtube'?'vid':v.tipo==='audio'?'aud':v.tipo==='pdf'?'pdf':'doc';
+      var card=document.createElement('div'); card.className='serie-card';
+      card.innerHTML='<div class="serie-ico">'+tipoLabel+'</div><div class="serie-info"><h3>'+esc(v.titulo||'Sin título')+'</h3></div>';
+      card.onclick=function(){ playVid(v.titulo,v.url||'',v.descripcion||'',v.tipo||'youtube'); };
+      target.appendChild(card);
+    });
   });
 }
 async function loadMisItinerarios(){
@@ -3419,7 +3397,7 @@ async function loadNoticias(){
     }
     var body = document.createElement('div');
     body.className = 'ncard-body';
-    body.innerHTML = '<div class="ncard-cat">'+(n.categoria||'noticias')+'</div><h4>'+(n.titulo||'')+'</h4>';
+    body.innerHTML = '<div class="ncard-cat">'+esc(n.categoria||'noticias')+'</div><h4>'+esc(n.titulo||'')+'</h4>';
     card.appendChild(body);
     scroll.appendChild(card);
   });
@@ -3526,18 +3504,123 @@ function renderEv(l,evs){
     var fecha=document.createElement('div');fecha.className='ev-fecha';
     fecha.innerHTML='<span class="ed">'+f.getDate()+'</span><span class="em">'+f.toLocaleDateString('es',{month:'short'}).toUpperCase()+'</span>';
     var body=document.createElement('div');body.className='ev-body';
-    body.innerHTML='<h3>'+esc(ev.titulo)+'</h3><p>'+esc(ev.descripcion||'')+(ev.lugar?' 📍'+esc(ev.lugar):'')+'</p><span class="ev-tipo">'+ev.tipo+'</span>'+(ev.url_inscripcion?'&nbsp;<a href="'+ev.url_inscripcion+'" target="_blank" class="ev-inscr">Inscribirse →</a>':'');
+    var tipoLabels={retiro:'🔥 Retiro',mision:'✝️ Misión',curso:'🎓 Curso',congreso:'🎤 Congreso',otro:'📌 Otro'};
+    body.innerHTML='<h3>'+esc(ev.titulo)+'</h3><p>'+esc(ev.descripcion||'')+(ev.lugar?' 📍'+esc(ev.lugar):'')+'</p><span class="ev-tipo">'+esc(tipoLabels[ev.tipo]||ev.tipo||'')+'</span>';
+    // Botón de inscripción: URL externa si existe, sino formulario interno
+    var inscBtn = document.createElement('a');
+    inscBtn.className = 'ev-inscr';
+    inscBtn.href = 'javascript:void(0)';
+    inscBtn.style.marginLeft = '6px';
+    inscBtn.textContent = 'Inscribirse →';
+    if(ev.url_inscripcion){
+      inscBtn.href = ev.url_inscripcion;
+      inscBtn.target = '_blank';
+    } else {
+      inscBtn.onclick = (function(evento){ return function(){ abrirInscripcionEvento(evento); }; })(ev);
+    }
+    body.appendChild(inscBtn);
     if(adminModeActive){
       var eb=document.createElement('div');eb.style.cssText='display:flex;gap:5px;margin-top:8px';
       var e2=document.createElement('button');e2.innerHTML='✏️ Editar';e2.style.cssText='flex:1;background:var(--azul);color:#fff;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit';
       e2.onclick=(function(ev2){return function(){openME(ev2);};})(ev);
       var d2=document.createElement('button');d2.innerHTML='🗑️';d2.style.cssText='background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer';
       d2.onclick=(function(ev2){return function(){if(!sb){toast('Conecta Supabase');return;}if(confirm('¿Eliminar?'))delE(ev2.id);};})(ev);
-      eb.appendChild(e2);eb.appendChild(d2);body.appendChild(eb);
+      var v2=document.createElement('button');v2.innerHTML='👥 Inscritos';v2.style.cssText='flex:1;background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit';
+      v2.onclick=(function(ev2){return function(){ verInscritosEvento(ev2); };})(ev);
+      eb.appendChild(e2);eb.appendChild(v2);eb.appendChild(d2);body.appendChild(eb);
     }
     card.appendChild(fecha);card.appendChild(body);l.appendChild(card);
   });
 }
+
+function abrirInscripcionEvento(ev){
+  document.getElementById('inscEventoId').value = ev.id;
+  document.getElementById('inscEvTit').childNodes[0].textContent = 'Inscripción: ' + ev.titulo + ' ';
+  document.getElementById('inscEvDesc').textContent = (ev.fecha_inicio||'') + (ev.lugar?' · 📍'+ev.lugar:'');
+  // Pre-rellenar si hay usuario logado
+  if(currentUser){
+    document.getElementById('inscNombre').value = (currentUser.user_metadata && currentUser.user_metadata.nombre) || '';
+    document.getElementById('inscEmail').value = currentUser.email || '';
+  }
+  openMo('moInscribirEv');
+}
+
+async function enviarInscripcionEvento(){
+  if(!sb) return toast('Supabase no configurado');
+  var eventoId = document.getElementById('inscEventoId').value;
+  var nombre = document.getElementById('inscNombre').value.trim();
+  var email = document.getElementById('inscEmail').value.trim();
+  var telefono = document.getElementById('inscTelefono').value.trim();
+  var notas = document.getElementById('inscNotas').value.trim();
+  if(!nombre || !email) return toast('Nombre y email son obligatorios');
+  var btn = document.getElementById('inscBtnEnviar');
+  if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
+  var payload = { evento_id: eventoId, nombre: nombre, email: email, telefono: telefono||null, notas: notas||null };
+  if(currentUser) payload.user_id = currentUser.id;
+  var r = await sb.from('inscripciones_eventos').insert(payload);
+  if(btn){ btn.disabled=false; btn.textContent='✅ Confirmar inscripción'; }
+  if(r.error) return toast('Error: '+r.error.message);
+  cxMo('moInscribirEv');
+  toast('🎉 ¡Inscripción confirmada! Te contactaremos pronto.');
+  document.getElementById('inscNombre').value='';
+  document.getElementById('inscEmail').value='';
+  document.getElementById('inscTelefono').value='';
+  document.getElementById('inscNotas').value='';
+}
+
+async function verInscritosEvento(ev){
+  if(!sb) return toast('Supabase no configurado');
+  var r = await sb.from('inscripciones_eventos').select('*').eq('evento_id', ev.id).order('created_at',{ascending:false});
+  if(r.error) return toast('Error: '+r.error.message);
+  var data = r.data || [];
+  if(!data.length){ toast('Sin inscripciones todavía para este evento'); return; }
+  var resumen = data.map(function(i){
+    return i.nombre + ' · ' + i.email + (i.telefono?' · '+i.telefono:'');
+  }).join('\n');
+  alert('Inscritos en "'+ev.titulo+'" ('+data.length+'):\n\n'+resumen);
+}
+
+async function abrirPanelInscripciones(){
+  openMo('moInscripcionesPanel');
+  var cont = document.getElementById('inscripcionesPanelList');
+  if(!cont) return;
+  if(!sb){ cont.innerHTML='<p style="font-size:12px;color:var(--gris)">Supabase no configurado</p>'; return; }
+  cont.innerHTML = '<div class="spin">Cargando…</div>';
+  try{
+    var ri = await sb.from('inscripciones_eventos').select('*, eventos(titulo, fecha_inicio)').order('created_at',{ascending:false}).limit(200);
+    if(ri.error){ cont.innerHTML='<p style="font-size:12px;color:var(--gris)">Error: '+esc(ri.error.message)+'</p>'; return; }
+    var data = ri.data || [];
+    if(!data.length){ cont.innerHTML='<p style="font-size:12px;color:var(--gris);padding:14px 0">Sin inscripciones todavía</p>'; return; }
+    // Agrupar por evento
+    var grupos = {};
+    data.forEach(function(i){
+      var key = i.evento_id || 'sin_evento';
+      if(!grupos[key]) grupos[key] = { titulo: (i.eventos && i.eventos.titulo) || 'Evento eliminado', fecha: (i.eventos && i.eventos.fecha_inicio) || '', items: [] };
+      grupos[key].items.push(i);
+    });
+    cont.innerHTML = '';
+    Object.keys(grupos).forEach(function(key){
+      var g = grupos[key];
+      var section = document.createElement('div');
+      section.style.cssText = 'margin-bottom:16px';
+      var header = document.createElement('div');
+      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:2px solid var(--azul-cl);margin-bottom:6px';
+      header.innerHTML = '<strong style="font-size:13px;color:var(--azul-os)">'+esc(g.titulo)+'</strong><span style="font-size:11px;color:var(--gris)">'+(g.fecha||'')+' · '+g.items.length+' inscritos</span>';
+      section.appendChild(header);
+      g.items.forEach(function(i){
+        var row = document.createElement('div');
+        row.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--borde);font-size:12px';
+        row.innerHTML = '<p style="font-weight:600;color:var(--azul-os)">'+esc(i.nombre)+'</p>'
+          + '<p style="color:var(--gris)">'+esc(i.email)+(i.telefono?' · '+esc(i.telefono):'')+'</p>'
+          + (i.notas?'<p style="color:var(--texto);margin-top:2px;font-style:italic">"'+esc(i.notas)+'"</p>':'')
+          + '<p style="color:var(--gris);font-size:10px;margin-top:2px">'+new Date(i.created_at).toLocaleDateString('es')+'</p>';
+        section.appendChild(row);
+      });
+      cont.appendChild(section);
+    });
+  }catch(e){ cont.innerHTML='<p style="font-size:12px;color:var(--gris)">Error al cargar inscripciones</p>'; }
+}
+
 
 
 
@@ -3819,13 +3902,13 @@ async function loadAdmOr() {
   if(!sb) { l.innerHTML='<p style="font-size:12px;color:var(--gris)">Configura Supabase</p>'; return; }
   admSpinner(l);
   try {
-    var r = await sb.from('oracion_dia').select('*').order('dia_numero');
+    var r = await sb.from('oracion_dia').select('*').order('dia');
     var data = r.data;
     if(!data||!data.length) { admEmpty(l,'🙏','Sin oraciones.'); return; }
     l.innerHTML = '';
     data.forEach(function(o) {
       l.appendChild(mkRow(
-        'Día '+o.dia_numero+' — '+(o.texto||'').substring(0,50)+'…',
+        'Día '+o.dia+' — '+(o.texto||'').substring(0,50)+'…',
         o.referencia||o.autor||'',
         (function(o){ return function(){ openMOracion(o); }; })(o),
         (function(id){ return function(){ delOr(id); }; })(o.id)
@@ -4063,10 +4146,10 @@ function openME(ev) {
   var mo = document.getElementById('moFE'); if(!mo) return;
   mo._id = ev?ev.id:null;
   var g = function(id){return document.getElementById(id)||{value:''};};
-  g('et').value=ev?ev.titulo:''; g('ed').value=ev?ev.descripcion||'':'';
-  g('efi').value=ev?ev.fecha_inicio||'':''; g('eff').value=ev?ev.fecha_fin||'':'';
-  g('eti').value=ev?ev.tipo||'retiro':'retiro'; g('el').value=ev?ev.lugar||'':'';
-  g('eu').value=ev?ev.url_inscripcion||'':'';
+  g('fet').value=ev?ev.titulo:''; g('fed').value=ev?ev.descripcion||'':'';
+  g('fefi').value=ev?ev.fecha_inicio||'':''; g('feff').value=ev?ev.fecha_fin||'':'';
+  g('eti').value=ev?ev.tipo||'retiro':'retiro'; g('fel').value=ev?ev.lugar||'':'';
+  g('feu').value=ev?ev.url_inscripcion||'':'';
   mo.classList.add('open');
 }
 async function saveEvento() {
@@ -4074,11 +4157,11 @@ async function saveEvento() {
   var mo = document.getElementById('moFE');
   var id = mo?mo._id:null;
   var g = function(id){return (document.getElementById(id)||{value:''}).value.trim();};
-  var t=g('et'), fi=g('efi');
+  var t=g('fet'), fi=g('fefi');
   if(!t||!fi) return toast('Título y fecha son obligatorios');
   var r = id
-    ? await sb.from('eventos').update({titulo:t,descripcion:g('ed'),fecha_inicio:fi,fecha_fin:g('eff')||null,tipo:(document.getElementById('eti')||{value:'retiro'}).value,lugar:g('el'),url_inscripcion:g('eu')}).eq('id',id)
-    : await sb.from('eventos').insert({titulo:t,descripcion:g('ed'),fecha_inicio:fi,fecha_fin:g('eff')||null,tipo:(document.getElementById('eti')||{value:'retiro'}).value,lugar:g('el'),url_inscripcion:g('eu')});
+    ? await sb.from('eventos').update({titulo:t,descripcion:g('fed'),fecha_inicio:fi,fecha_fin:g('feff')||null,tipo:(document.getElementById('eti')||{value:'retiro'}).value,lugar:g('fel'),url_inscripcion:g('feu')}).eq('id',id)
+    : await sb.from('eventos').insert({titulo:t,descripcion:g('fed'),fecha_inicio:fi,fecha_fin:g('feff')||null,tipo:(document.getElementById('eti')||{value:'retiro'}).value,lugar:g('fel'),url_inscripcion:g('feu')});
   if(r.error) return toast('Error: '+r.error.message);
   if(mo) mo.classList.remove('open');
   toast(id?'Actualizado ✓':'Guardado ✓'); loadAdmEvs();
@@ -4135,7 +4218,7 @@ function openMOracion(o) {
   var mo = document.getElementById('moFO'); if(!mo) return;
   mo._id = o?o.id:null;
   var g = function(id){return document.getElementById(id)||{value:''};};
-  g('orDia').value=o?o.dia_numero||'':''; g('orTexto').value=o?o.texto||'':'';
+  g('orDia').value=o?o.dia||'':''; g('orTexto').value=o?o.texto||'':'';
   g('orAutor').value=o?o.autor||'':''; g('orRef').value=o?o.referencia||'':'';
   mo.classList.add('open');
 }
@@ -4146,7 +4229,7 @@ async function saveOracion() {
   var dia=parseInt((document.getElementById('orDia')||{value:0}).value);
   var texto=(document.getElementById('orTexto')||{value:''}).value.trim();
   if(!texto||!dia) return toast('Día y texto son obligatorios');
-  var payload={dia_numero:dia,texto:texto,autor:(document.getElementById('orAutor')||{value:''}).value.trim(),referencia:(document.getElementById('orRef')||{value:''}).value.trim()};
+  var payload={dia:dia,texto:texto,autor:(document.getElementById('orAutor')||{value:''}).value.trim(),referencia:(document.getElementById('orRef')||{value:''}).value.trim()};
   var r = id ? await sb.from('oracion_dia').update(payload).eq('id',id) : await sb.from('oracion_dia').insert(payload);
   if(r.error) return toast('Error: '+r.error.message);
   if(mo) mo.classList.remove('open');
@@ -4392,7 +4475,7 @@ function cmsRenderNav() {
     var ni = document.createElement('div');
     ni.className = 'ni';
     ni.id = 'nv-' + p.slug;
-    ni.innerHTML = '<span class="ico">' + (p.icono||'📄') + '</span><span>' + p.titulo + '</span>';
+    ni.innerHTML = '<span class="ico">' + esc(p.icono||'📄') + '</span><span>' + esc(p.titulo) + '</span>';
     ni.onclick = (function(slug){ return function(){ navTo(slug); }; })(p.slug);
     nav.appendChild(ni);
   });
@@ -4800,7 +4883,7 @@ async function loadAdmPeticiones() {
     data.forEach(function(p) {
       var row = document.createElement('div');
       row.style.cssText = 'border:1px solid var(--borde,#dde3f0);border-radius:8px;padding:10px 12px;margin-bottom:8px';
-      row.innerHTML = '<p style="font-size:12px;font-weight:600;color:var(--azul-os,#1A3A6E);margin-bottom:4px">'+(p.nombre||'Anónimo')+'</p>'
+      row.innerHTML = '<p style="font-size:12px;font-weight:600;color:var(--azul-os,#1A3A6E);margin-bottom:4px">'+esc(p.nombre||'Anónimo')+'</p>'
         + '<p style="font-size:12px;color:var(--texto,#0d1b2e);line-height:1.5;margin-bottom:6px">'+esc(p.peticion)+'</p>'
         + '<p style="font-size:10px;color:var(--gris)">'+new Date(p.created_at).toLocaleDateString('es')+'</p>';
       var db = document.createElement('button');
@@ -4853,57 +4936,9 @@ async function enviarPeticion() {
 }
 
 // ── Stripe pago automático ──
-async function comprarCursoStripe(cursoId, precio, nombre, tipo) {
-  if(!currentUser) {
-    toast('Inicia sesión para continuar');
-    setTimeout(function(){ openMo('moAuth'); }, 800);
-    return;
-  }
-  toast('Preparando pago…');
-  try {
-    var res = await fetch('/.netlify/functions/stripe-checkout', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        cursoId: cursoId,
-        userId: currentUser.id,
-        userEmail: currentUser.email,
-        tipo: tipo || 'unico'
-      })
-    });
-    var data = await res.json();
-    if(data.url) {
-      window.location.href = data.url;
-    } else {
-      toast('Error: ' + (data.error || 'No se pudo iniciar el pago'));
-    }
-  } catch(e) {
-    toast('Error de conexión con el pago. Inténtalo de nuevo.');
-  }
-}
-
-// ── Verificar pago al volver de Stripe ──
-function checkPagoReturn() {
-  var params = new URLSearchParams(window.location.search);
-  if(params.get('pago') === 'ok') {
-    var cursoId = params.get('curso');
-    toast('✅ Pago completado. ¡Ya tienes acceso!');
-    // Clean URL
-    window.history.replaceState({}, '', window.location.pathname);
-    if(cursoId) {
-      // Refresh formacion to show new access
-      setTimeout(function(){ navTo('formacion'); }, 1000);
-    }
-  } else if(params.get('pago') === 'cancelado') {
-    toast('Pago cancelado');
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-}
-
 // ── Init CMS on load ──
 async function initCMS() {
   await cmsLoadPages();
-  checkPagoReturn();
   // Render dynamic pages
   cmsPages.forEach(function(p) {
     var existing = document.getElementById('pg-' + p.slug);
