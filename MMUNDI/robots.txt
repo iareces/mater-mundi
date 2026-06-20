@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mater-mundi.netlify.app/sitemap.xml
