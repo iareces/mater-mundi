@@ -201,6 +201,9 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
 .donar-box{margin:14px 14px 0;background:linear-gradient(135deg,#1A3A6E,#1E7BC4);border-radius:var(--r);padding:18px;text-align:center}
 .donar-box h3{font-family:"Playfair Display",serif;font-size:18px;color:#fff;margin-bottom:6px}
 .donar-box p{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.5;margin-bottom:12px}
+.socio-opt{background:#fff;border:2px solid var(--borde);border-radius:10px;padding:14px 8px;font-size:18px;font-weight:700;color:var(--azul-os);cursor:pointer;font-family:inherit;transition:border-color 0.15s}
+.socio-opt span{font-size:11px;font-weight:400;color:var(--gris);display:block;margin-top:2px}
+.socio-opt.sel{border-color:var(--azul);background:var(--azul-cl)}
 .btn-donar-big{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--azul-os);border:none;border-radius:20px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 
 /* AGENDA */
@@ -536,6 +539,8 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <div class="lcard" onclick="navTo('explorar')"><div class="lcard-ico tv" style="background:var(--azul)">🔍</div><div class="lcard-info"><h3>Explorar</h3><p>Todo el contenido con filtros</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('reels')"><div class="lcard-ico tv" style="background:#C0392B">✨</div><div class="lcard-info"><h3>Reels</h3><p>Testimonios en formato reel</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('reto')"><div class="lcard-ico tv" style="background:var(--azul-os)">🔥</div><div class="lcard-info"><h3>Reto de oración</h3><p>21 días para transformar tu vida</p></div><span class="lcard-arr">→</span></div>
+    <div class="lcard" onclick="navTo('velas')"><div class="lcard-ico tv" style="background:#5a3d1e">🕯️</div><div class="lcard-info"><h3>Enciende una Vela</h3><p>Comparte tu intención de oración</p></div><span class="lcard-arr">→</span></div>
+    <div class="lcard" onclick="navTo('liturgico')"><div class="lcard-ico tv" style="background:#6B2D5C">📅</div><div class="lcard-info"><h3>Calendario Litúrgico</h3><p>Santo del día y tiempo litúrgico</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('itinerarios')"><div class="lcard-ico tv" style="background:var(--azul-os)">🗺️</div><div class="lcard-info"><h3>Itinerarios</h3><p>Caminos de formación acompañada</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('miespacio')"><div class="lcard-ico tv" style="background:var(--azul-med)">👤</div><div class="lcard-info"><h3>Mi espacio</h3><p>Progreso, guardados y perfil</p></div><span class="lcard-arr">→</span></div>
     <div class="lcard" onclick="navTo('agenda')"><div class="lcard-ico tv">📅</div><div class="lcard-info"><h3>Agenda</h3><p>Retiros, misiones y eventos</p></div><span class="lcard-arr">→</span></div>
@@ -585,6 +590,10 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <div class="adm-t" onclick="admTab(this,'aComentarios')">💬 Comentarios</div>
       <div class="adm-t" onclick="admTab(this,'aPeticiones')">🙏 Peticiones</div>
       <div class="adm-t" onclick="admTab(this,'aConfig')">⚙️ Config</div>
+      <div class="adm-t" onclick="admTab(this,'aCuentas')">💳 Cuentas</div>
+      <div class="adm-t" onclick="admTab(this,'aVelas')">🕯️ Velas</div>
+      <div class="adm-t" onclick="admTab(this,'aComunidad')">💭 Comunidad</div>
+      <div class="adm-t" onclick="admTab(this,'aLiturgico')">📅 Litúrgico</div>
       <div class="adm-t" onclick="admTab(this,'aCMS')">🗂️ CMS</div>
     </div>
     <div class="adm-sec on" id="aVids">
@@ -676,6 +685,28 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <div class="mfg"><label>Seguidores Facebook</label><input type="text" id="cfgFbSubs" placeholder="13K"/></div>
       <button class="btn-pri" onclick="guardarConfig()">💾 Guardar configuración</button>
     </div>
+    <!-- ══ CUENTAS DE PAGO ══ -->
+    <div class="adm-sec" id="aCuentas">
+      <p style="font-size:11px;color:var(--gris);margin-bottom:10px">Organizaciones que reciben pagos. Necesitas el <strong>Account ID</strong> de Stripe de cada una (empieza por <code>acct_</code>).</p>
+      <button class="btn-add" onclick="openMCuenta(null)">+ Nueva cuenta</button>
+      <div id="admCuentasList"><div class="spin">Cargando…</div></div>
+    </div>
+    <!-- ══ VELAS (moderación) ══ -->
+    <div class="adm-sec" id="aVelas">
+      <p style="font-size:11px;color:var(--gris);margin-bottom:10px">Modera las velas e intenciones publicadas por los usuarios. Eliminar quita la vela de la vista pública.</p>
+      <div id="admVelasList"><div class="spin">Cargando…</div></div>
+    </div>
+    <!-- ══ COMUNIDAD (moderación foro por curso) ══ -->
+    <div class="adm-sec" id="aComunidad">
+      <p style="font-size:11px;color:var(--gris);margin-bottom:10px">Modera los mensajes publicados en la comunidad de cada itinerario/curso.</p>
+      <div id="admComunidadList"><div class="spin">Cargando…</div></div>
+    </div>
+    <!-- ══ CALENDARIO LITÚRGICO ══ -->
+    <div class="adm-sec" id="aLiturgico">
+      <p style="font-size:11px;color:var(--gris);margin-bottom:10px">Configura el santo del día, tiempo litúrgico y color para cada fecha.</p>
+      <button class="btn-add" onclick="openMLiturgico(null)">+ Nueva fecha</button>
+      <div id="admLiturgicoList"><div class="spin">Cargando…</div></div>
+    </div>
     <!-- ══ CMS ══ -->
     <div class="adm-sec" id="aCMS" onclick="cmsHandleClick(event)">
       <p style="font-size:11px;color:var(--gris,#5a6a85);margin-bottom:10px">Gestiona las pestañas de navegación y su contenido</p>
@@ -707,6 +738,64 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <p id="retoProgText" style="font-size:11px;opacity:0.8;margin-top:6px">0 de 21 días completados</p>
   </div>
   <div id="retoDays"><div class="spin">Cargando…</div></div>
+</div>
+
+<!-- VELAS VIRTUALES -->
+<div class="pg" id="pg-velas">
+  <div class="sec-hdr"><div><h2>🕯️ Enciende una Vela</h2><p class="sub">Comparte tu intención y reza con la comunidad</p></div></div>
+  <div style="margin:0 14px 16px;background:linear-gradient(135deg,#3a2a1a,#5a3d1e);border-radius:14px;padding:20px;color:#fff;text-align:center">
+    <p style="font-size:36px;margin-bottom:8px">🕯️</p>
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:6px">Enciende la Vela Mater Mundi</h3>
+    <p style="font-size:12px;opacity:0.85;margin-bottom:14px">Lleva luz al mundo. Comparte tu intención y otros se unirán a rezar por ti.</p>
+    <button onclick="abrirNuevaVela()" style="background:#fff;color:#3a2a1a;border:none;border-radius:20px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🕯️ Encender una vela</button>
+  </div>
+  <div id="velasLista"><div class="spin">Cargando…</div></div>
+</div>
+
+<!-- Modal nueva vela -->
+<div class="mo bot" id="moNuevaVela" onclick="if(event.target===this)cxMo('moNuevaVela')">
+  <div class="mf">
+    <h3>🕯️ Encender una vela <button class="btn-x" onclick="cxMo('moNuevaVela')">✕</button></h3>
+    <div class="mfg"><label>Tu intención de oración *</label><textarea id="velaIntencion" placeholder="Por la salud de mi madre, por encontrar trabajo, por mi familia…"></textarea></div>
+    <div class="mfg"><label>Tu nombre (opcional)</label><input type="text" id="velaNombre" placeholder="Anónimo"/></div>
+    <div style="background:var(--azul-cl);border-radius:10px;padding:12px;margin-bottom:14px">
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:var(--azul-os)">
+        <input type="checkbox" id="velaEsPerpetua" style="margin-top:2px" onchange="togglePerpetua()"/>
+        <span><strong>Vela Perpetua (15€, pago único)</strong><br/><span style="color:var(--gris);font-size:11px">Tu intención queda mantenida de forma permanente y destacada en la app</span></span>
+      </label>
+    </div>
+    <div class="form-btns">
+      <button class="btn-can" onclick="cxMo('moNuevaVela')">Cancelar</button>
+      <button class="btn-sav" id="btnEncenderVela" onclick="encenderVela()">🕯️ Encender</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal hazte socio -->
+<div class="mo bot" id="moSocio" onclick="if(event.target===this)cxMo('moSocio')">
+  <div class="mf">
+    <h3>🤝 Hazte socio <button class="btn-x" onclick="cxMo('moSocio')">✕</button></h3>
+    <p style="font-size:12px;color:var(--gris);margin-bottom:14px">Una aportación mensual nos permite seguir produciendo contenido que acerca a Dios a millones de personas. Puedes cancelar cuando quieras.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px" id="socioImportes">
+      <button class="socio-opt" data-importe="3" onclick="seleccionarImporteSocio(this)">3€<span>/mes</span></button>
+      <button class="socio-opt" data-importe="5" onclick="seleccionarImporteSocio(this)">5€<span>/mes</span></button>
+      <button class="socio-opt" data-importe="10" onclick="seleccionarImporteSocio(this)">10€<span>/mes</span></button>
+      <button class="socio-opt" data-importe="20" onclick="seleccionarImporteSocio(this)">20€<span>/mes</span></button>
+    </div>
+    <input type="hidden" id="socioImporteSel" value="5"/>
+    <div class="form-btns">
+      <button class="btn-can" onclick="cxMo('moSocio')">Cancelar</button>
+      <button class="btn-sav" onclick="procesarHazteSocio()">💳 Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDARIO LITÚRGICO -->
+<div class="pg" id="pg-liturgico">
+  <div class="sec-hdr"><div><h2>📅 Calendario Litúrgico</h2><p class="sub">Vive el año litúrgico de la Iglesia</p></div></div>
+  <div id="liturgicoHoy" style="margin:0 14px 16px"><div class="spin">Cargando…</div></div>
+  <div style="padding:0 14px 8px"><p style="font-size:13px;font-weight:600;color:var(--azul-os)">Próximos días</p></div>
+  <div id="liturgicoProximos"></div>
 </div>
 
 <!-- NAV -->
@@ -760,6 +849,10 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <p id="itinProgTxt" style="font-size:11px;color:rgba(255,255,255,0.75)">0 de 0 pasos completados</p>
     </div>
     <div id="itinPasosList" style="padding:0 14px;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="margin:20px 14px 0;border-top:1px solid var(--borde);padding-top:14px">
+      <p style="font-size:14px;font-weight:700;color:var(--azul-os);margin-bottom:10px">💬 Comunidad — comparte tu camino</p>
+      <div id="itinComunidad"><div class="spin">Cargando…</div></div>
+    </div>
   </div>
 </div>
 
@@ -848,8 +941,9 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <iframe id="mvIframe" allowfullscreen allow="autoplay;encrypted-media"></iframe>
     <p class="mv-desc" id="mvDesc"></p>
     <div style="display:flex;gap:8px;padding:10px 14px 0">
-      <button onclick="compartirVideo()" style="flex:1;background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📤 Compartir</button>
-      <button onclick="guardarVideoActual()" style="flex:1;background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit" id="btnGuardarVideo">❤️ Guardar</button>
+      <button onclick="compartirWhatsApp()" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">💬 WhatsApp</button>
+      <button onclick="compartirVideo()" style="background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:8px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📤</button>
+      <button onclick="guardarVideoActual()" style="background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:8px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit" id="btnGuardarVideo">❤️</button>
     </div>
   </div>
 </div>
@@ -967,6 +1061,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <div class="mfg"><label>Descripción</label><textarea id="itinDesc" placeholder="Descripción…"></textarea></div>
     <div class="mf-row">
       <div class="mfg"><label>Precio (€) — 0=gratis</label><input type="number" id="itinPrecio" placeholder="0" min="0" step="0.01"/></div>
+      <div class="mfg"><label>Cuenta de pago</label><select id="itinCuentaPago"><option value="">Mater Mundi (principal)</option></select></div>
       <div class="mfg" style="display:flex;align-items:center;gap:6px;padding-top:20px">
         <input type="checkbox" id="itinAct" style="width:auto" checked/>
         <label for="itinAct" style="font-size:12px;color:var(--gris)">✅ Activo</label>
@@ -1065,6 +1160,49 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <div class="form-btns">
       <button class="btn-can" onclick="cxMo('moFE')">Cancelar</button>
       <button class="btn-sav" onclick="saveEvento()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal cuenta de pago -->
+<div class="mo bot" id="moFCuenta" onclick="if(event.target===this)cxMo('moFCuenta')">
+  <div class="mf">
+    <h3>Cuenta de pago <button class="btn-x" onclick="cxMo('moFCuenta')">✕</button></h3>
+    <div class="mfg"><label>Nombre *</label><input type="text" id="cuentaNombre" placeholder="Ej: Congregación Nuestra Señora"/></div>
+    <div class="mfg"><label>Organización</label><input type="text" id="cuentaOrg" placeholder="Ej: Claretians"/></div>
+    <div class="mfg"><label>Stripe Account ID</label><input type="text" id="cuentaStripeId" placeholder="acct_XXXXXXXXXX (vacío = cuenta principal)"/></div>
+    <div class="mfg"><label>% comisión Mater Mundi</label><input type="number" id="cuentaComision" placeholder="0" min="0" max="100" step="0.5"/><p style="font-size:10px;color:var(--gris);margin-top:4px">Porcentaje que retiene Mater Mundi de cada pago. Déjalo en 0 hasta decidirlo.</p></div>
+    <div class="form-btns">
+      <button class="btn-can" onclick="cxMo('moFCuenta')">Cancelar</button>
+      <button class="btn-sav" onclick="saveCuenta()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal calendario litúrgico -->
+<div class="mo bot" id="moFLiturgico" onclick="if(event.target===this)cxMo('moFLiturgico')">
+  <div class="mf">
+    <h3 id="moFLiturgicoTit">Fecha litúrgica <button class="btn-x" onclick="cxMo('moFLiturgico')">✕</button></h3>
+    <div class="mfg"><label>Fecha *</label><input type="date" id="litFecha"/></div>
+    <div class="mfg"><label>Santo del día</label><input type="text" id="litSanto" placeholder="Ej: San Antonio de Padua"/></div>
+    <div class="mfg"><label>Tiempo litúrgico</label><select id="litTiempo">
+      <option value="Tiempo Ordinario">Tiempo Ordinario</option>
+      <option value="Adviento">Adviento</option>
+      <option value="Navidad">Navidad</option>
+      <option value="Cuaresma">Cuaresma</option>
+      <option value="Pascua">Pascua</option>
+    </select></div>
+    <div class="mfg"><label>Color litúrgico</label><select id="litColor">
+      <option value="verde">🟢 Verde</option>
+      <option value="morado">🟣 Morado</option>
+      <option value="blanco">⚪ Blanco</option>
+      <option value="rojo">🔴 Rojo</option>
+      <option value="rosa">🌸 Rosa</option>
+    </select></div>
+    <div class="mfg"><label>Descripción (opcional)</label><textarea id="litDesc" placeholder="Breve nota sobre la celebración…"></textarea></div>
+    <div class="form-btns">
+      <button class="btn-can" onclick="cxMo('moFLiturgico')">Cancelar</button>
+      <button class="btn-sav" onclick="saveLiturgico()">💾 Guardar</button>
     </div>
   </div>
 </div>
@@ -1616,7 +1754,10 @@ function renderLinks(cfg){
   const donarBox = document.createElement('div');
   donarBox.className = 'donar-box';
   donarBox.style.cssText = 'margin:14px 0 0';
-  donarBox.innerHTML = '<h3>❤️ Apoya la misión</h3><p>Tu ayuda nos permite seguir produciendo contenido que acerca a Dios a millones de personas.</p><a href="'+(cfg&&cfg.donar_url||'https://www.matermundi.tv/donar/')+'" target="_blank"><button class="btn-donar-big">❤️ Donar ahora</button></a>';
+  donarBox.innerHTML = '<h3>❤️ Apoya la misión</h3><p>Tu ayuda nos permite seguir produciendo contenido que acerca a Dios a millones de personas.</p>'
+    + '<a href="'+(cfg&&cfg.donar_url||'https://www.matermundi.tv/donar/')+'" target="_blank"><button class="btn-donar-big">❤️ Donar ahora</button></a>'
+    + '<p style="font-size:11px;color:rgba(255,255,255,0.6);margin:10px 0 6px">— o —</p>'
+    + '<button class="btn-donar-big" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.4)" onclick="abrirModalSocio()">🤝 Hazte socio desde 3€/mes</button>';
   if(adminModeActive){
     const eb2 = document.createElement('div');
     eb2.style.cssText = 'margin-top:10px';
@@ -1870,6 +2011,18 @@ async function validarCodigoAcceso(id, tipo){
   } else if(params.get('pago') === 'cancelado') {
     window.history.replaceState({}, '', window.location.pathname);
     toast('Pago cancelado. Puedes intentarlo de nuevo cuando quieras.');
+  } else if(params.get('socio') === 'ok') {
+    window.history.replaceState({}, '', window.location.pathname);
+    setTimeout(function(){ toast('🎉 ¡Gracias por hacerte socio de Mater Mundi! Tu apoyo hace posible esta misión.'); }, 800);
+  } else if(params.get('socio') === 'cancelado') {
+    window.history.replaceState({}, '', window.location.pathname);
+    toast('Proceso cancelado. Puedes intentarlo de nuevo cuando quieras.');
+  } else if(params.get('vela') === 'ok') {
+    window.history.replaceState({}, '', window.location.pathname);
+    setTimeout(function(){ toast('🕯️ Tu Vela Perpetua ha sido encendida. Gracias por tu generosidad.'); }, 800);
+  } else if(params.get('vela') === 'cancelado') {
+    window.history.replaceState({}, '', window.location.pathname);
+    toast('Proceso cancelado. Puedes intentarlo de nuevo cuando quieras.');
   }
 })();
 
@@ -2420,6 +2573,8 @@ function navTo(p){
   if(p==='directos') loadDirectos();
   if(p==='reels') loadReels();
   if(p==='reto') loadReto();
+  if(p==='velas') loadVelas();
+  if(p==='liturgico') loadLiturgico();
   if(p==='evangelizacion') loadEvang();
   if(p==='miespacio') loadMiEspacio();
   if(p==='agenda') loadEventos();
@@ -2532,16 +2687,35 @@ function playAudio(url,titulo){
     document.getElementById('audioPlayerTit').textContent=titulo||'Audio';
     document.getElementById('audioPauseBtn').textContent='||';
     bar.style.display='block';
+    actualizarMediaSession(titulo);
   }).catch(()=>toast('Error al reproducir'));
+}
+function actualizarMediaSession(titulo){
+  if(!('mediaSession' in navigator)) return;
+  try{
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: titulo || 'Audio',
+      artist: 'Mater Mundi TV',
+      artwork: [
+        { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+    navigator.mediaSession.setActionHandler('play', function(){ toggleAudioPlay(); });
+    navigator.mediaSession.setActionHandler('pause', function(){ toggleAudioPlay(); });
+    navigator.mediaSession.setActionHandler('seekbackward', function(){ audioSkip(-15); });
+    navigator.mediaSession.setActionHandler('seekforward', function(){ audioSkip(15); });
+    navigator.mediaSession.setActionHandler('stop', function(){ cerrarAudioPlayer(); });
+  }catch(e){}
 }
 function toggleAudioPlay(){
   const audio=document.getElementById('globalAudio');
   const btn=document.getElementById('audioPauseBtn');
-  if(audio.paused){audio.play();btn.textContent='||';audioPlaying=true;}
-  else{audio.pause();btn.textContent='>';audioPlaying=false;}
+  if(audio.paused){audio.play();btn.textContent='||';audioPlaying=true;if('mediaSession' in navigator)navigator.mediaSession.playbackState='playing';}
+  else{audio.pause();btn.textContent='>';audioPlaying=false;if('mediaSession' in navigator)navigator.mediaSession.playbackState='paused';}
 }
 function audioSkip(s){const a=document.getElementById('globalAudio');a.currentTime=Math.max(0,Math.min(a.duration||0,a.currentTime+s));}
-function cerrarAudioPlayer(){const a=document.getElementById('globalAudio');a.pause();a.src='';document.getElementById('audioPlayerBar').style.display='none';}
+function cerrarAudioPlayer(){const a=document.getElementById('globalAudio');a.pause();a.src='';document.getElementById('audioPlayerBar').style.display='none';if('mediaSession' in navigator){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';}}
 function seekAudio(e){const a=document.getElementById('globalAudio');if(!a.duration)return;const r=document.getElementById('audioProgressBg').getBoundingClientRect();a.currentTime=((e.clientX-r.left)/r.width)*a.duration;}
 function fmtTime(s){if(isNaN(s))return'0:00';return Math.floor(s/60)+':'+(Math.floor(s%60)<10?'0':'')+Math.floor(s%60);}
 document.getElementById('globalAudio').addEventListener('timeupdate',function(){
@@ -2717,6 +2891,15 @@ function playVid(tit,url,desc,tipo,vidId){
   openMo('moVideo');
 }
 
+function compartirWhatsApp(){
+  var v = window._currentVideo;
+  if(!v) return;
+  var yid = ytId(v.url);
+  var shareUrl = yid ? 'https://youtu.be/'+yid : v.url;
+  var msg = v.titulo + '\n' + shareUrl + '\n\n📲 Vía Mater Mundi TV';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
 function compartirVideo(){
   var v = window._currentVideo;
   if(!v) return;
@@ -2843,7 +3026,7 @@ async function loadFVids(){
   const g=document.getElementById('gridFV');
   if(!sb){renderVEj(g);return;}
   g.innerHTML='';g.appendChild(spinEl());
-  try{const{data}=await sb.from('videos').select('*').eq('seccion','formacion').eq('activo',true).order('orden');if(!data||!data.length){renderVEj(g);}else{renderV(g,data);}}
+  try{const{data}=await sb.from('videos').select('*').eq('seccion','formacion').eq('activo',true).order('orden').limit(60);if(!data||!data.length){renderVEj(g);}else{renderV(g,data);}}
   catch(e){renderVEj(g);}
 }
 async function accederItin(){
@@ -3031,6 +3214,7 @@ async function abrirItinData(data){
   document.getElementById('itinDetTitulo').textContent=data.nombre;
   document.getElementById('itinDetDesc').textContent=data.descripcion||'';
   renderPasosItin(pasos);
+  loadComunidadCurso(data.id, 'itinComunidad');
 }
 function renderPasosItin(pasos){
   const total=pasos.length;
@@ -3701,7 +3885,7 @@ async function loadAdmVids() {
   if(!sb) { l.innerHTML='<p style="font-size:12px;color:var(--gris)">Configura Supabase primero</p>'; return; }
   admSpinner(l);
   try {
-    var r = await sb.from('videos').select('*').order('seccion').order('created_at',{ascending:false});
+    var r = await sb.from('videos').select('*').order('seccion').order('created_at',{ascending:false}).limit(300);
     var data = r.data;
     if(!data||!data.length) { admEmpty(l,'🎬','Sin vídeos. Añade el primero.'); return; }
     l.innerHTML = '';
@@ -4011,6 +4195,521 @@ function compartirApp() {
   }
 }
 
+// ══ CUENTAS DE PAGO ══
+var cuentasPago = [];
+
+async function loadCuentasPago() {
+  if(!sb) return;
+  try {
+    var r = await sb.from('cuentas_pago').select('*').eq('activo', true).order('nombre');
+    cuentasPago = r.data || [];
+  } catch(e) {}
+}
+
+function poblarSelectCuentas(selectId, valorActual) {
+  var sel = document.getElementById(selectId);
+  if(!sel) return;
+  sel.innerHTML = '<option value="">Mater Mundi (principal)</option>';
+  cuentasPago.forEach(function(c) {
+    if(c.stripe_account_id) { // solo mostrar las que tienen cuenta Stripe configurada + principal
+      var opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.nombre + (c.organizacion ? ' · ' + c.organizacion : '');
+      if(valorActual && valorActual === c.id) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+async function loadAdmCuentas() {
+  var l = document.getElementById('admCuentasList'); if(!l) return;
+  if(!sb) { admEmpty(l,'💳','Supabase no configurado'); return; }
+  await loadCuentasPago();
+  if(!cuentasPago.length) { admEmpty(l,'💳','Sin cuentas configuradas todavía'); return; }
+  l.innerHTML = '';
+  cuentasPago.forEach(function(c) {
+    var row = document.createElement('div');
+    row.style.cssText = 'background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px;margin-bottom:8px';
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1';
+    info.innerHTML = '<p style="font-size:13px;font-weight:600;color:var(--azul-os)">'+esc(c.nombre)+'</p>'
+      + '<p style="font-size:11px;color:var(--gris)">'+(c.organizacion?esc(c.organizacion)+' · ':'')+''
+      + (c.stripe_account_id?'<code style="font-size:10px">'+esc(c.stripe_account_id)+'</code>':'<em>Cuenta principal</em>')
+      + (c.comision_pct?' · '+c.comision_pct+'% comisión':'')+'</p>';
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:5px';
+    var eb = document.createElement('button');
+    eb.innerHTML = '✏️';
+    eb.style.cssText = 'background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer';
+    eb.onclick = (function(cid){ return function(){ openMCuenta(cid); }; })(c.id);
+    btns.appendChild(eb);
+    if(c.stripe_account_id){
+      var db = document.createElement('button');
+      db.innerHTML = '🗑️';
+      db.style.cssText = 'background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer';
+      db.onclick = (function(cid){ return function(){ delCuenta(cid); }; })(c.id);
+      btns.appendChild(db);
+    }
+    var wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px';
+    wrapper.appendChild(info); wrapper.appendChild(btns);
+    row.appendChild(wrapper);
+    l.appendChild(row);
+  });
+}
+
+async function openMCuenta(id) {
+  var mo = document.getElementById('moFCuenta'); if(!mo) return;
+  mo._id = id;
+  if(id && sb) {
+    try {
+      var r = await sb.from('cuentas_pago').select('*').eq('id', id).single();
+      if(r.data) {
+        document.getElementById('cuentaNombre').value = r.data.nombre || '';
+        document.getElementById('cuentaOrg').value = r.data.organizacion || '';
+        document.getElementById('cuentaStripeId').value = r.data.stripe_account_id || '';
+        document.getElementById('cuentaComision').value = r.data.comision_pct || 0;
+      }
+    } catch(e) {}
+  } else {
+    document.getElementById('cuentaNombre').value = '';
+    document.getElementById('cuentaOrg').value = '';
+    document.getElementById('cuentaStripeId').value = '';
+    document.getElementById('cuentaComision').value = 0;
+  }
+  mo.classList.add('open');
+}
+
+async function saveCuenta() {
+  if(!sb) return toast('Supabase no configurado');
+  var mo = document.getElementById('moFCuenta');
+  var id = mo ? mo._id : null;
+  var nombre = document.getElementById('cuentaNombre').value.trim();
+  if(!nombre) return toast('El nombre es obligatorio');
+  var payload = {
+    nombre: nombre,
+    organizacion: document.getElementById('cuentaOrg').value.trim() || null,
+    stripe_account_id: document.getElementById('cuentaStripeId').value.trim() || null,
+    comision_pct: parseFloat(document.getElementById('cuentaComision').value) || 0,
+    activo: true
+  };
+  var r = id
+    ? await sb.from('cuentas_pago').update(payload).eq('id', id)
+    : await sb.from('cuentas_pago').insert(payload);
+  if(r.error) return toast('Error: ' + r.error.message);
+  mo.classList.remove('open');
+  toast(id ? 'Cuenta actualizada ✓' : 'Cuenta creada ✓');
+  loadAdmCuentas();
+  loadCuentasPago();
+}
+
+async function delCuenta(id) {
+  if(!confirm('¿Eliminar esta cuenta de pago?')) return;
+  if(!sb) return;
+  await sb.from('cuentas_pago').update({activo: false}).eq('id', id);
+  toast('Cuenta eliminada ✓');
+  loadAdmCuentas();
+}
+
+// ══ VELAS VIRTUALES ══
+function getSessionId() {
+  var sid = localStorage.getItem('mm_session_id');
+  if (!sid) {
+    sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2,10);
+    localStorage.setItem('mm_session_id', sid);
+  }
+  return sid;
+}
+
+async function loadVelas() {
+  var cont = document.getElementById('velasLista'); if (!cont) return;
+  if (!sb) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px">Supabase no configurado</p>'; return; }
+  cont.innerHTML = '<div class="spin">Cargando…</div>';
+  try {
+    var r = await sb.from('velas').select('*').eq('activa', true).order('tipo', {ascending:false}).order('created_at', { ascending: false }).limit(50);
+    var data = r.data || [];
+    if (!data.length) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px;text-align:center">Sé el primero en encender una vela 🕯️</p>'; return; }
+    cont.innerHTML = '';
+    var sid = getSessionId();
+    data.forEach(function(v) {
+      var esPerpetua = v.tipo === 'perpetua';
+      var card = document.createElement('div');
+      card.style.cssText = 'background:'+(esPerpetua?'linear-gradient(135deg,#fff8ec,#fff)':'#fff')+';border:1px solid '+(esPerpetua?'#e8c074':'var(--borde)')+';border-radius:12px;padding:14px;margin:0 14px 10px;display:flex;gap:12px;align-items:flex-start';
+      var icon = document.createElement('div');
+      icon.style.cssText = 'font-size:28px;flex-shrink:0';
+      icon.textContent = esPerpetua ? '✨🕯️' : '🕯️';
+      var body = document.createElement('div');
+      body.style.cssText = 'flex:1';
+      body.innerHTML = (esPerpetua ? '<span style="font-size:9px;font-weight:700;color:#a87b1f;text-transform:uppercase;letter-spacing:0.5px;background:#fef3da;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px">Vela Perpetua</span><br/>' : '')
+        + '<p style="font-size:13px;color:var(--texto);line-height:1.5;margin-bottom:6px">' + esc(v.intencion) + '</p>'
+        + '<p style="font-size:11px;color:var(--gris)">— ' + esc(v.nombre || 'Anónimo') + ' · ' + new Date(v.created_at).toLocaleDateString('es') + '</p>';
+      var btnRow = document.createElement('div');
+      btnRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px';
+      var btnUnir = document.createElement('button');
+      btnUnir.textContent = '🙏 Me uno en oración (' + (v.apoyos || 0) + ')';
+      btnUnir.style.cssText = 'background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit';
+      btnUnir.onclick = (function(velaId, btn) { return function() { unirseOracionVela(velaId, btn); }; })(v.id, btnUnir);
+      btnRow.appendChild(btnUnir);
+      body.appendChild(btnRow);
+      card.appendChild(icon); card.appendChild(body);
+      cont.appendChild(card);
+    });
+  } catch (e) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px">Error al cargar</p>'; }
+}
+
+function abrirNuevaVela() {
+  document.getElementById('velaIntencion').value = '';
+  document.getElementById('velaNombre').value = currentUser ? ((currentUser.user_metadata && currentUser.user_metadata.nombre) || '') : '';
+  openMo('moNuevaVela');
+}
+
+function togglePerpetua() {
+  var esPerpetua = document.getElementById('velaEsPerpetua').checked;
+  var btn = document.getElementById('btnEncenderVela');
+  if (btn) btn.textContent = esPerpetua ? '💳 Continuar al pago (15€)' : '🕯️ Encender';
+}
+
+async function encenderVela() {
+  var intencion = document.getElementById('velaIntencion').value.trim();
+  if (!intencion) return toast('Escribe tu intención de oración');
+  var nombre = document.getElementById('velaNombre').value.trim() || 'Anónimo';
+  var esPerpetua = document.getElementById('velaEsPerpetua').checked;
+
+  if (esPerpetua) {
+    if (!currentUser) {
+      toast('Inicia sesión para encender una vela perpetua');
+      setTimeout(function(){ openMo('moAuth'); }, 800);
+      return;
+    }
+    toast('Redirigiendo a pago seguro…');
+    try {
+      var res = await fetch('/.netlify/functions/stripe-vela', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ intencion: intencion, nombre: nombre, userId: currentUser.id, userEmail: currentUser.email })
+      });
+      if (res.ok) {
+        var data = await res.json();
+        if (data.url) window.location.href = data.url;
+        else toast('Error al crear sesión de pago');
+      } else {
+        toast('Error al procesar. Inténtalo de nuevo.');
+      }
+    } catch(e) {
+      toast('Servicio de pago no disponible ahora mismo.');
+    }
+    return;
+  }
+
+  // Vela normal, gratuita
+  if (!sb) return toast('Supabase no configurado');
+  var payload = { intencion: intencion, nombre: nombre, tipo: 'normal' };
+  if (currentUser) payload.user_id = currentUser.id;
+  var r = await sb.from('velas').insert(payload);
+  if (r.error) return toast('Error: ' + r.error.message);
+  cxMo('moNuevaVela');
+  toast('🕯️ Vela encendida. Gracias por compartir tu intención.');
+  loadVelas();
+}
+
+async function unirseOracionVela(velaId, btn) {
+  if (!sb) return toast('Supabase no configurado');
+  var payload = { vela_id: velaId };
+  if (currentUser) payload.user_id = currentUser.id;
+  else payload.session_id = getSessionId();
+  var r = await sb.from('vela_apoyos').insert(payload);
+  if (r.error) {
+    if (r.error.message && r.error.message.includes('duplicate')) { toast('Ya te uniste a esta intención 🙏'); return; }
+    return toast('Error: ' + r.error.message);
+  }
+  // Incrementar contador en velas
+  var rv = await sb.from('velas').select('apoyos').eq('id', velaId).single();
+  var nuevoTotal = (rv.data ? rv.data.apoyos : 0) + 1;
+  await sb.from('velas').update({ apoyos: nuevoTotal }).eq('id', velaId);
+  if (btn) btn.textContent = '🙏 Me uno en oración (' + nuevoTotal + ')';
+  toast('🙏 Te has unido en oración');
+}
+
+// ══ CALENDARIO LITÚRGICO ══
+async function loadLiturgico() {
+  var hoyCont = document.getElementById('liturgicoHoy');
+  var proxCont = document.getElementById('liturgicoProximos');
+  if (!hoyCont || !sb) return;
+  hoyCont.innerHTML = '<div class="spin">Cargando…</div>';
+  try {
+    var hoy = new Date();
+    var hoyStr = hoy.toISOString().split('T')[0];
+    var r1 = await sb.from('calendario_liturgico').select('*').eq('fecha', hoyStr).maybeSingle();
+    var colores = { verde: '#2E7D32', morado: '#6B2D5C', blanco: '#B0A99F', rojo: '#C0392B', rosa: '#E091B0' };
+    if (r1.data) {
+      var d = r1.data;
+      var color = colores[d.color_liturgico] || 'var(--azul)';
+      hoyCont.innerHTML = '<div style="background:linear-gradient(135deg,' + color + ',' + color + 'cc);border-radius:14px;padding:18px;color:#fff;text-align:center">'
+        + '<p style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:1px">' + esc(d.tiempo_liturgico || '') + '</p>'
+        + '<h3 style="font-size:18px;font-weight:700;margin:6px 0">' + esc(d.santo_dia || 'Hoy') + '</h3>'
+        + (d.descripcion ? '<p style="font-size:12px;opacity:0.9">' + esc(d.descripcion) + '</p>' : '') + '</div>';
+    } else {
+      hoyCont.innerHTML = '<div style="background:var(--azul-cl);border-radius:14px;padding:18px;text-align:center"><p style="font-size:12px;color:var(--gris)">Sin datos litúrgicos para hoy todavía</p></div>';
+    }
+    // Próximos 7 días
+    var en7dias = new Date(hoy); en7dias.setDate(en7dias.getDate() + 7);
+    var r2 = await sb.from('calendario_liturgico').select('*').gte('fecha', hoyStr).lte('fecha', en7dias.toISOString().split('T')[0]).order('fecha');
+    if (proxCont) {
+      var data2 = (r2.data || []).filter(function(d){ return d.fecha !== hoyStr; });
+      if (!data2.length) { proxCont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:0 14px">Sin más datos próximos</p>'; }
+      else {
+        proxCont.innerHTML = '';
+        data2.forEach(function(d) {
+          var f = new Date(d.fecha + 'T12:00:00');
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--borde)';
+          row.innerHTML = '<div style="width:40px;text-align:center;flex-shrink:0"><p style="font-size:16px;font-weight:700;color:var(--azul-os)">' + f.getDate() + '</p><p style="font-size:9px;color:var(--gris);text-transform:uppercase">' + f.toLocaleDateString('es',{month:'short'}) + '</p></div>'
+            + '<div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--azul-os)">' + esc(d.santo_dia || '') + '</p><p style="font-size:11px;color:var(--gris)">' + esc(d.tiempo_liturgico || '') + '</p></div>';
+          proxCont.appendChild(row);
+        });
+      }
+    }
+  } catch (e) { hoyCont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px">Error al cargar calendario</p>'; }
+}
+
+// ══ COMUNIDAD POR CURSO ══
+async function loadComunidadCurso(cursoId, contenedorId) {
+  var cont = document.getElementById(contenedorId); if (!cont || !sb) return;
+  cont.innerHTML = '<div class="spin">Cargando…</div>';
+  try {
+    var r = await sb.from('comunidad_curso').select('*').eq('curso_id', cursoId).eq('aprobado', true).order('created_at', { ascending: false }).limit(50);
+    var data = r.data || [];
+    cont.innerHTML = '';
+    if (!data.length) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:10px 0">Sé el primero en compartir tu reflexión.</p>'; }
+    else {
+      data.forEach(function(m) {
+        var row = document.createElement('div');
+        row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--borde)';
+        row.innerHTML = '<p style="font-size:12px;font-weight:600;color:var(--azul-os);margin-bottom:3px">' + esc(m.nombre) + ' <span style="font-size:10px;color:var(--gris);font-weight:400">' + new Date(m.created_at).toLocaleDateString('es') + '</span></p>'
+          + '<p style="font-size:13px;color:var(--texto);line-height:1.5">' + esc(m.mensaje) + '</p>';
+        cont.appendChild(row);
+      });
+    }
+    // Form para nuevo mensaje
+    var form = document.createElement('div');
+    form.style.cssText = 'margin-top:10px';
+    if (currentUser) {
+      form.innerHTML = '<textarea id="comunidadMsg_' + cursoId + '" placeholder="Comparte tu reflexión con la comunidad…" style="width:100%;padding:10px;border:1px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px"></textarea>'
+        + '<button style="margin-top:6px;background:var(--azul);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit" onclick="enviarComunidadCurso(\''+cursoId+'\',\''+contenedorId+'\')">Publicar</button>';
+    } else {
+      form.innerHTML = '<p style="font-size:12px;color:var(--gris)">Inicia sesión para compartir tu reflexión.</p>';
+    }
+    cont.appendChild(form);
+  } catch (e) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris)">Error al cargar comunidad</p>'; }
+}
+
+async function enviarComunidadCurso(cursoId, contenedorId) {
+  if (!sb || !currentUser) return toast('Inicia sesión para participar');
+  var input = document.getElementById('comunidadMsg_' + cursoId);
+  var mensaje = input ? input.value.trim() : '';
+  if (!mensaje) return toast('Escribe algo antes de publicar');
+  var nombre = (currentUser.user_metadata && currentUser.user_metadata.nombre) || currentUser.email;
+  var r = await sb.from('comunidad_curso').insert({ curso_id: cursoId, user_id: currentUser.id, nombre: nombre, mensaje: mensaje });
+  if (r.error) return toast('Error: ' + r.error.message);
+  toast('✅ Publicado');
+  loadComunidadCurso(cursoId, contenedorId);
+}
+
+// ══ HAZTE SOCIO (donación recurrente mensual) ══
+function abrirModalSocio() {
+  if (!currentUser) {
+    toast('Inicia sesión para hacerte socio');
+    setTimeout(function(){ openMo('moAuth'); }, 800);
+    return;
+  }
+  document.getElementById('socioImporteSel').value = '5';
+  document.querySelectorAll('.socio-opt').forEach(function(b){ b.classList.remove('sel'); });
+  var def = document.querySelector('.socio-opt[data-importe="5"]');
+  if (def) def.classList.add('sel');
+  openMo('moSocio');
+}
+
+function seleccionarImporteSocio(btn) {
+  document.querySelectorAll('.socio-opt').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  document.getElementById('socioImporteSel').value = btn.dataset.importe;
+}
+
+async function procesarHazteSocio() {
+  if (!currentUser) return toast('Inicia sesión para continuar');
+  var importe = document.getElementById('socioImporteSel').value;
+  toast('Redirigiendo a pago seguro…');
+  try {
+    var nombre = (currentUser.user_metadata && currentUser.user_metadata.nombre) || '';
+    var res = await fetch('/.netlify/functions/stripe-socio', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ importe: importe, userId: currentUser.id, userEmail: currentUser.email, nombre: nombre })
+    });
+    if (res.ok) {
+      var data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else toast('Error al crear sesión de pago');
+    } else {
+      toast('Error al procesar. Inténtalo de nuevo.');
+    }
+  } catch(e) {
+    toast('Servicio de pago no disponible ahora mismo.');
+  }
+}
+
+// ══ ADMIN — MODERACIÓN DE VELAS ══
+async function loadAdmVelas() {
+  var l = document.getElementById('admVelasList'); if (!l) return;
+  if (!sb) { admEmpty(l,'🕯️','Supabase no configurado'); return; }
+  admSpinner(l);
+  try {
+    var r = await sb.from('velas').select('*').order('created_at', { ascending: false }).limit(100);
+    var data = r.data || [];
+    if (!data.length) { admEmpty(l,'🕯️','Sin velas todavía'); return; }
+    l.innerHTML = '';
+    data.forEach(function(v) {
+      var row = document.createElement('div');
+      row.style.cssText = 'background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px;margin-bottom:8px';
+      var esPerpetua = v.tipo === 'perpetua';
+      row.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+        + '<div style="flex:1">'
+        + (esPerpetua ? '<span style="font-size:9px;font-weight:700;color:#a87b1f;background:#fef3da;padding:2px 6px;border-radius:4px">PERPETUA · '+(v.pagado?'Pagada':'Pendiente de pago')+'</span><br/>' : '')
+        + '<p style="font-size:13px;color:var(--texto);margin-top:4px">' + esc(v.intencion) + '</p>'
+        + '<p style="font-size:11px;color:var(--gris);margin-top:4px">— ' + esc(v.nombre||'Anónimo') + ' · ' + new Date(v.created_at).toLocaleDateString('es') + ' · ' + (v.apoyos||0) + ' apoyos · ' + (v.activa?'✅ Visible':'🚫 Oculta') + '</p>'
+        + '</div></div>';
+      var btns = document.createElement('div');
+      btns.style.cssText = 'display:flex;gap:6px;margin-top:8px';
+      var toggleBtn = document.createElement('button');
+      toggleBtn.textContent = v.activa ? '🚫 Ocultar' : '✅ Mostrar';
+      toggleBtn.style.cssText = 'flex:1;background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit';
+      toggleBtn.onclick = (function(id, activa) { return function() {
+        sb.from('velas').update({ activa: !activa }).eq('id', id).then(function() { toast(!activa?'Vela mostrada ✓':'Vela ocultada ✓'); loadAdmVelas(); });
+      }; })(v.id, v.activa);
+      var delBtn = document.createElement('button');
+      delBtn.textContent = '🗑️ Eliminar';
+      delBtn.style.cssText = 'flex:1;background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit';
+      delBtn.onclick = (function(id) { return function() {
+        if (!confirm('¿Eliminar esta vela permanentemente?')) return;
+        sb.from('velas').delete().eq('id', id).then(function() { toast('Eliminada ✓'); loadAdmVelas(); });
+      }; })(v.id);
+      btns.appendChild(toggleBtn); btns.appendChild(delBtn);
+      row.appendChild(btns);
+      l.appendChild(row);
+    });
+  } catch(e) { admEmpty(l,'⚠️','Error al cargar'); }
+}
+
+// ══ ADMIN — MODERACIÓN DE COMUNIDAD ══
+async function loadAdmComunidad() {
+  var l = document.getElementById('admComunidadList'); if (!l) return;
+  if (!sb) { admEmpty(l,'💭','Supabase no configurado'); return; }
+  admSpinner(l);
+  try {
+    var r = await sb.from('comunidad_curso').select('*').order('created_at', { ascending: false }).limit(100);
+    var data = r.data || [];
+    if (!data.length) { admEmpty(l,'💭','Sin mensajes todavía'); return; }
+    l.innerHTML = '';
+    data.forEach(function(m) {
+      var row = document.createElement('div');
+      row.style.cssText = 'background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px;margin-bottom:8px';
+      row.innerHTML = '<p style="font-size:12px;font-weight:600;color:var(--azul-os)">' + esc(m.nombre) + '</p>'
+        + '<p style="font-size:13px;color:var(--texto);margin-top:4px">' + esc(m.mensaje) + '</p>'
+        + '<p style="font-size:10px;color:var(--gris);margin-top:4px">Curso: ' + esc(m.curso_id) + ' · ' + new Date(m.created_at).toLocaleDateString('es') + ' · ' + (m.aprobado?'✅ Visible':'🚫 Oculto') + '</p>';
+      var btns = document.createElement('div');
+      btns.style.cssText = 'display:flex;gap:6px;margin-top:8px';
+      var toggleBtn = document.createElement('button');
+      toggleBtn.textContent = m.aprobado ? '🚫 Ocultar' : '✅ Mostrar';
+      toggleBtn.style.cssText = 'flex:1;background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit';
+      toggleBtn.onclick = (function(id, aprobado) { return function() {
+        sb.from('comunidad_curso').update({ aprobado: !aprobado }).eq('id', id).then(function() { toast(!aprobado?'Mensaje mostrado ✓':'Mensaje oculto ✓'); loadAdmComunidad(); });
+      }; })(m.id, m.aprobado);
+      var delBtn = document.createElement('button');
+      delBtn.textContent = '🗑️ Eliminar';
+      delBtn.style.cssText = 'flex:1;background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit';
+      delBtn.onclick = (function(id) { return function() {
+        if (!confirm('¿Eliminar este mensaje permanentemente?')) return;
+        sb.from('comunidad_curso').delete().eq('id', id).then(function() { toast('Eliminado ✓'); loadAdmComunidad(); });
+      }; })(m.id);
+      btns.appendChild(toggleBtn); btns.appendChild(delBtn);
+      row.appendChild(btns);
+      l.appendChild(row);
+    });
+  } catch(e) { admEmpty(l,'⚠️','Error al cargar'); }
+}
+
+// ══ ADMIN — CALENDARIO LITÚRGICO ══
+async function loadAdmLiturgico() {
+  var l = document.getElementById('admLiturgicoList'); if (!l) return;
+  if (!sb) { admEmpty(l,'📅','Supabase no configurado'); return; }
+  admSpinner(l);
+  try {
+    var hoy = new Date().toISOString().split('T')[0];
+    var r = await sb.from('calendario_liturgico').select('*').gte('fecha', hoy).order('fecha').limit(60);
+    var data = r.data || [];
+    if (!data.length) { admEmpty(l,'📅','Sin fechas próximas configuradas'); return; }
+    l.innerHTML = '';
+    var colores = { verde:'🟢', morado:'🟣', blanco:'⚪', rojo:'🔴', rosa:'🌸' };
+    data.forEach(function(d) {
+      var row = document.createElement('div');
+      row.style.cssText = 'background:#fff;border:1px solid var(--borde);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px';
+      var f = new Date(d.fecha + 'T12:00:00');
+      row.innerHTML = '<div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--azul-os)">' + f.toLocaleDateString('es',{day:'2-digit',month:'short'}) + ' — ' + esc(d.santo_dia||'') + '</p>'
+        + '<p style="font-size:11px;color:var(--gris)">' + (colores[d.color_liturgico]||'') + ' ' + esc(d.tiempo_liturgico||'') + '</p></div>';
+      var btns = document.createElement('div');
+      btns.style.cssText = 'display:flex;gap:5px';
+      var eb = document.createElement('button');
+      eb.textContent = '✏️';
+      eb.style.cssText = 'background:var(--azul-cl);color:var(--azul-os);border:none;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer';
+      eb.onclick = (function(dd) { return function() { openMLiturgico(dd); }; })(d);
+      var db = document.createElement('button');
+      db.textContent = '🗑️';
+      db.style.cssText = 'background:rgba(192,57,43,0.1);color:#C0392B;border:none;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer';
+      db.onclick = (function(id) { return function() {
+        if (!confirm('¿Eliminar esta fecha?')) return;
+        sb.from('calendario_liturgico').delete().eq('id', id).then(function() { toast('Eliminada ✓'); loadAdmLiturgico(); });
+      }; })(d.id);
+      btns.appendChild(eb); btns.appendChild(db);
+      row.appendChild(btns);
+      l.appendChild(row);
+    });
+  } catch(e) { admEmpty(l,'⚠️','Error al cargar'); }
+}
+
+function openMLiturgico(d) {
+  var mo = document.getElementById('moFLiturgico'); if (!mo) return;
+  mo._id = d ? d.id : null;
+  document.getElementById('litFecha').value = d ? d.fecha : '';
+  document.getElementById('litSanto').value = d ? (d.santo_dia||'') : '';
+  document.getElementById('litTiempo').value = d ? (d.tiempo_liturgico||'Tiempo Ordinario') : 'Tiempo Ordinario';
+  document.getElementById('litColor').value = d ? (d.color_liturgico||'verde') : 'verde';
+  document.getElementById('litDesc').value = d ? (d.descripcion||'') : '';
+  document.getElementById('moFLiturgicoTit').childNodes[0].textContent = (d ? 'Editar' : 'Nueva') + ' fecha litúrgica ';
+  mo.classList.add('open');
+}
+
+async function saveLiturgico() {
+  if (!sb) return toast('Supabase no configurado');
+  var mo = document.getElementById('moFLiturgico');
+  var id = mo ? mo._id : null;
+  var fecha = document.getElementById('litFecha').value;
+  if (!fecha) return toast('La fecha es obligatoria');
+  var payload = {
+    fecha: fecha,
+    santo_dia: document.getElementById('litSanto').value.trim() || null,
+    tiempo_liturgico: document.getElementById('litTiempo').value,
+    color_liturgico: document.getElementById('litColor').value,
+    descripcion: document.getElementById('litDesc').value.trim() || null
+  };
+  var r = id
+    ? await sb.from('calendario_liturgico').update(payload).eq('id', id)
+    : await sb.from('calendario_liturgico').upsert(payload, { onConflict: 'fecha' });
+  if (r.error) return toast('Error: ' + r.error.message);
+  mo.classList.remove('open');
+  toast(id ? 'Actualizado ✓' : 'Creado ✓');
+  loadAdmLiturgico();
+}
+
 // ── STUBS ──
 async function loadAdmUsers() {
   // aUsuarios usa accesosLista + uEmail + uCurso — cargar accesos concedidos y cursos disponibles
@@ -4112,6 +4811,8 @@ function openMS(s) {
   var pr = document.getElementById('sp')||document.getElementById('fsp'); if(pr) pr.value=s?s.precio||0:0;
   var ic = document.getElementById('si')||document.getElementById('fsi'); if(ic) ic.value=s?s.icono||'':'';
   var ur = document.getElementById('su')||document.getElementById('fsu'); if(ur) ur.value=s?s.url_playlist||'':'';
+  // Poblar selector de cuentas
+  loadCuentasPago().then(function(){ poblarSelectCuentas('cursoCuentaPago', s?s.cuenta_pago_id:null); });
   mo.classList.add('open');
 }
 async function saveSerie() {
@@ -4128,6 +4829,7 @@ async function saveSerie() {
     icono: ((document.getElementById('si')||document.getElementById('fsi')||{}).value||'📺').trim(),
     url_playlist: ((document.getElementById('su')||document.getElementById('fsu')||{}).value||'').trim()
   };
+  payload.cuenta_pago_id = (document.getElementById('cursoCuentaPago')||{value:''}).value || null;
   var r = id ? await sb.from('cursos').update(payload).eq('id',id) : await sb.from('cursos').insert(payload);
   if(r.error) return toast('Error: '+r.error.message);
   if(mo) mo.classList.remove('open');
@@ -4167,6 +4869,8 @@ function openMItin(it) {
   g('itinDesc').value=it?it.descripcion||'':'';
   g('itinPrecio').value=it?(it.precio||0):0;
   var ac=document.getElementById('itinActivo'); if(ac) ac.checked=it?it.activo!==false:true;
+  // Poblar selector de cuentas
+  loadCuentasPago().then(function(){ poblarSelectCuentas('itinCuentaPago', it?it.cuenta_pago_id:null); });
   mo.classList.add('open');
 }
 async function saveItin() {
@@ -4178,7 +4882,8 @@ async function saveItin() {
   if(!nombre||!codigo) return toast('Nombre y código son obligatorios');
   var precio = parseFloat((document.getElementById('itinPrecio')||{value:0}).value)||0;
   var ac=document.getElementById('itinActivo');
-  var payload={nombre:nombre,codigo:codigo,descripcion:(document.getElementById('itinDesc')||{value:''}).value.trim(),precio:precio,activo:ac?ac.checked:true};
+  var cuentaId = (document.getElementById('itinCuentaPago')||{value:''}).value||null;
+  var payload={nombre:nombre,codigo:codigo,descripcion:(document.getElementById('itinDesc')||{value:''}).value.trim(),precio:precio,activo:ac?ac.checked:true,cuenta_pago_id:cuentaId};
   var r = id ? await sb.from('itinerarios').update(payload).eq('id',id) : await sb.from('itinerarios').insert(payload);
   if(r.error) return toast('Error: '+(r.error.message.includes('unique')?'Ese código ya existe':r.error.message));
   if(mo) mo.classList.remove('open');
@@ -4296,7 +5001,8 @@ function admTab(el, tab) {
   var map = {
     aVids:loadAdmVids, aSeries:loadAdmSeries, aItin:loadAdmItin,
     aEventos:loadAdmEvs, aLinks:loadLinks, aEvang:loadAdmRec,
-    aOracion:loadAdmOr, aUsuarios:loadAdmUsers, aConfig:loadAdmConfig,
+    aOracion:loadAdmOr, aUsuarios:loadAdmUsers, aConfig:loadAdmConfig, aCuentas:loadAdmCuentas,
+    aVelas:loadAdmVelas, aComunidad:loadAdmComunidad, aLiturgico:loadAdmLiturgico,
     aNoticias:loadAdmNoticias, aInicio:loadAdmInicio,
     aComentarios:loadAdmComentarios, aPeticiones:loadAdmPeticiones,
     aCMS:loadAdmCMS
