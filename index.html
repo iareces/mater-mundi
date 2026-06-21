@@ -198,6 +198,18 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
 .lcard-info h3{font-size:14px;font-weight:600;color:var(--azul-os);margin-bottom:1px}
 .lcard-info p{font-size:11px;color:var(--gris)}
 .lcard-arr{font-size:16px;color:var(--gris)}
+/* SPLASH DE BIENVENIDA */
+#splashScreen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d2347,#1A3A6E 55%,#1E7BC4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:splashFadeOut 0.6s ease 1.7s forwards}
+#splashLogoWrap{position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;animation:splashLogoIn 0.7s cubic-bezier(.34,1.56,.64,1)}
+#splashLogo{width:100px;height:100px;border-radius:50%;position:relative;z-index:2;box-shadow:0 8px 30px rgba(0,0,0,0.35);object-fit:cover;display:block}
+#splashGlow{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.35),transparent 70%);z-index:1;animation:splashPulse 1.6s ease-in-out infinite}
+#splashTagline{color:rgba(255,255,255,0.85);font-size:13px;letter-spacing:1px;text-transform:uppercase;font-weight:600;animation:splashTextIn 0.6s ease 0.3s both}
+@keyframes splashLogoIn{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes splashTextIn{0%{transform:translateY(8px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes splashPulse{0%,100%{transform:scale(0.9);opacity:0.6}50%{transform:scale(1.15);opacity:1}}
+@keyframes splashFadeOut{0%{opacity:1;visibility:visible}99%{opacity:0;visibility:visible}100%{opacity:0;visibility:hidden;pointer-events:none}}
+@keyframes liveDot{0%{box-shadow:0 0 0 0 rgba(46,204,113,0.5)}70%{box-shadow:0 0 0 8px rgba(46,204,113,0)}100%{box-shadow:0 0 0 0 rgba(46,204,113,0)}}
+
 .donar-box{margin:14px 14px 0;background:linear-gradient(135deg,#1A3A6E,#1E7BC4);border-radius:var(--r);padding:18px;text-align:center}
 .donar-box h3{font-family:"Playfair Display",serif;font-size:18px;color:#fff;margin-bottom:6px}
 .donar-box p{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.5;margin-bottom:12px}
@@ -340,6 +352,14 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
 </head>
 <body>
 
+<!-- SPLASH DE BIENVENIDA -->
+<div id="splashScreen">
+  <div id="splashLogoWrap">
+    <img id="splashLogo" src="icon-192.png" alt="Mater Mundi TV"/>
+    <div id="splashGlow"></div>
+  </div>
+  <p id="splashTagline">Testimonios · Formación · Evangelización</p>
+</div>
 
 <!-- BOTÓN FLOTANTE ADMIN (visible solo cuando admin está activo) -->
 <div id="adminFab" style="display:none;position:fixed;top:56px;right:10px;z-index:300">
@@ -406,6 +426,20 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <button onclick="openMo('moMuroOracion');loadMuro()" style="flex:1;background:linear-gradient(135deg,var(--azul-os),var(--azul));color:#fff;border:none;border-radius:12px;padding:14px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px">
       <span style="font-size:24px">🕊️</span>Muro oración
     </button>
+  </div>
+
+  <!-- Contador en vivo de comunidad -->
+  <div id="liveCounterBox" style="margin:16px 14px 0;background:#fff;border:1px solid var(--borde);border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px">
+    <span style="width:8px;height:8px;border-radius:50%;background:#2ECC71;flex-shrink:0;box-shadow:0 0 0 0 rgba(46,204,113,0.5);animation:liveDot 1.8s infinite"></span>
+    <p id="liveCounterText" style="font-size:12px;color:var(--azul-os);font-weight:600;flex:1">Cargando comunidad…</p>
+  </div>
+
+  <!-- Hazte socio destacado en portada -->
+  <div onclick="abrirModalSocio()" style="margin:16px 14px 4px;background:linear-gradient(135deg,#1A3A6E,#1E7BC4);border-radius:14px;padding:18px;text-align:center;cursor:pointer">
+    <p style="font-size:26px;margin-bottom:6px">🤝</p>
+    <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#fff;margin-bottom:4px">Hazte socio de Mater Mundi</h3>
+    <p style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:12px">Desde 3€/mes ayudas a que esta misión siga llegando a millones de personas</p>
+    <button style="background:#fff;color:#1A3A6E;border:none;border-radius:20px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Quiero ser socio →</button>
   </div>
 
 </div>
@@ -758,10 +792,11 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <h3>🕯️ Encender una vela <button class="btn-x" onclick="cxMo('moNuevaVela')">✕</button></h3>
     <div class="mfg"><label>Tu intención de oración *</label><textarea id="velaIntencion" placeholder="Por la salud de mi madre, por encontrar trabajo, por mi familia…"></textarea></div>
     <div class="mfg"><label>Tu nombre (opcional)</label><input type="text" id="velaNombre" placeholder="Anónimo"/></div>
+    <p style="font-size:11px;color:var(--gris);margin:-6px 0 12px">🕯️ Tu vela permanecerá visible 7 días</p>
     <div style="background:var(--azul-cl);border-radius:10px;padding:12px;margin-bottom:14px">
       <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:var(--azul-os)">
         <input type="checkbox" id="velaEsPerpetua" style="margin-top:2px" onchange="togglePerpetua()"/>
-        <span><strong>Vela Perpetua (15€, pago único)</strong><br/><span style="color:var(--gris);font-size:11px">Tu intención queda mantenida de forma permanente y destacada en la app</span></span>
+        <span><strong>Vela Perpetua (15€, pago único)</strong><br/><span style="color:var(--gris);font-size:11px">Tu intención queda mantenida de forma permanente y destacada en la app — nunca caduca</span></span>
       </label>
     </div>
     <div class="form-btns">
@@ -853,6 +888,18 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <p style="font-size:14px;font-weight:700;color:var(--azul-os);margin-bottom:10px">💬 Comunidad — comparte tu camino</p>
       <div id="itinComunidad"><div class="spin">Cargando…</div></div>
     </div>
+  </div>
+</div>
+
+<!-- DETALLE SERIE/CURSO -->
+<div class="mo bot" id="moSerieDetalle" onclick="if(event.target===this)cxMo('moSerieDetalle')">
+  <div class="mf" style="max-height:85vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <h3 id="serieDetTitulo" style="margin:0">Serie</h3>
+      <button class="btn-x" onclick="cxMo('moSerieDetalle')">✕</button>
+    </div>
+    <p id="serieDetDesc" style="font-size:12px;color:var(--gris);margin-bottom:14px"></p>
+    <div id="serieDetContenido"><div class="spin">Cargando…</div></div>
   </div>
 </div>
 
@@ -1003,11 +1050,15 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
     <div class="mfg hid" id="fvTextoWrap"><label>Contenido</label><textarea id="fvTexto" placeholder="Escribe el contenido…" style="min-height:120px"></textarea></div>
     <div class="mf-row">
       <div class="mfg"><label>Sección</label>
-        <select id="fvs"><option value="testimonios">Testimonios</option><option value="formacion">Formación</option><option value="evangelizacion">Evangelización</option><option value="reels">✨ Reels</option></select>
+        <select id="fvs" onchange="toggleFvCursoSelect()"><option value="testimonios">Testimonios</option><option value="formacion">Formación</option><option value="evangelizacion">Evangelización</option><option value="reels">✨ Reels</option><option value="curso">📺 Serie/Curso concreto</option></select>
       </div>
       <div class="mfg"><label>Categoría</label>
         <select id="fvc"><option value="">—</option><option value="conversion">Conversión</option><option value="curacion">Curación</option><option value="mision">Misión</option><option value="familia">Familia</option><option value="joven">Jóvenes</option><option value="vocacion">Vocación</option><option value="formacion">Formación</option><option value="oracion">Oración</option></select>
       </div>
+    </div>
+    <div class="mfg hid" id="fvCursoWrap">
+      <label>¿A qué serie/curso pertenece? *</label>
+      <select id="fvCursoId"><option value="">Selecciona…</option></select>
     </div>
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
       <input type="checkbox" id="fvdest" style="width:auto"/>
@@ -1043,7 +1094,7 @@ body{font-family:"Source Sans 3",sans-serif;background:#F0F5FB;color:#1A1410;min
       <input type="checkbox" id="fsact" style="width:auto" checked/>
       <label for="fsact" style="font-size:12px;color:var(--gris)">✅ Activo (visible)</label>
     </div>
-    <p style="font-size:11px;color:var(--gris);margin-bottom:10px">💡 Para añadir vídeos, audios o PDFs a esta serie/curso, ve a la pestaña <strong>🎬 Vídeos</strong> del admin y selecciona esta serie como sección.</p>
+    <p style="font-size:11px;color:var(--gris);margin-bottom:10px">💡 Para añadir vídeos, audios, PDFs, textos o enlaces a esta serie/curso: ve a <strong>🎬 Vídeos</strong> → Añadir recurso → Sección: <strong>"Serie/Curso concreto"</strong> → selecciona esta serie en el desplegable que aparecerá.</p>
     <div class="form-btns">
       <button class="btn-can" onclick="cxMo('moFS')">Cancelar</button>
       <button class="btn-sav" onclick="saveSerie()">💾 Guardar</button>
@@ -1881,7 +1932,7 @@ function refreshCurrentPageWithEdit(){
   if(curPage==='directos') loadDirectos();
   if(curPage==='links') loadLinks();
   if(curPage==='agenda') loadEventos();
-  if(curPage==='inicio'){ loadNoticias(); renderEvDiaAdmin(); }
+  if(curPage==='inicio'){ loadNoticias(); renderEvDiaAdmin(); loadLiveCounter(); }
   if(curPage==='itinerarios') loadItinPublicos();
 }
 
@@ -2013,13 +2064,13 @@ async function validarCodigoAcceso(id, tipo){
     toast('Pago cancelado. Puedes intentarlo de nuevo cuando quieras.');
   } else if(params.get('socio') === 'ok') {
     window.history.replaceState({}, '', window.location.pathname);
-    setTimeout(function(){ toast('🎉 ¡Gracias por hacerte socio de Mater Mundi! Tu apoyo hace posible esta misión.'); }, 800);
+    setTimeout(function(){ celebrar(); toast('🎉 ¡Gracias por hacerte socio de Mater Mundi! Tu apoyo hace posible esta misión.'); }, 800);
   } else if(params.get('socio') === 'cancelado') {
     window.history.replaceState({}, '', window.location.pathname);
     toast('Proceso cancelado. Puedes intentarlo de nuevo cuando quieras.');
   } else if(params.get('vela') === 'ok') {
     window.history.replaceState({}, '', window.location.pathname);
-    setTimeout(function(){ toast('🕯️ Tu Vela Perpetua ha sido encendida. Gracias por tu generosidad.'); }, 800);
+    setTimeout(function(){ celebrar(); toast('🕯️ Tu Vela Perpetua ha sido encendida. Gracias por tu generosidad.'); }, 800);
   } else if(params.get('vela') === 'cancelado') {
     window.history.replaceState({}, '', window.location.pathname);
     toast('Proceso cancelado. Puedes intentarlo de nuevo cuando quieras.');
@@ -2232,6 +2283,12 @@ async function toggleRetoDay(pasoId){
   var fill = document.getElementById('retoProgFill'); if(fill) fill.style.width=pct+'%';
   var txt = document.getElementById('retoProgText'); if(txt) txt.textContent=completados+' de '+retoPasos.length+' días completados';
   renderRetoDias(retoPasos);
+  if(completados === retoPasos.length && retoPasos.length > 0){
+    setTimeout(function(){
+      celebrar();
+      toast('🎉 ¡Has completado el Reto de 21 días! Que tu encuentro con Dios continúe.');
+    }, 300);
+  }
 }
 
 // ══ ADMIN EDIT BUTTONS HELPER ══
@@ -2987,7 +3044,7 @@ function renderSeries(l,items){
       '</div>'+
       '<span style="font-size:18px;color:var(--gris)">'+(gratis?'→':'🔒')+'</span>';
     card.onclick=function(){
-      if(gratis){if(s.url_playlist)window.open(s.url_playlist,'_blank');}
+      if(gratis){ abrirSerieDetalle(s); }
       else{pedirCodigoAcceso(s.id,'serie',s.nombre,s.precio);}
     };
     if(adminModeActive){agregarBotonesEditar(card,s,'serie');}
@@ -3011,7 +3068,7 @@ function renderCursos(l,items){
       '</div>'+
       '<span style="font-size:18px;color:var(--gris)">'+(gratis?'→':'🔒')+'</span>';
     card.onclick=function(){
-      if(gratis){toast('Abriendo curso...');}
+      if(gratis){ abrirSerieDetalle(c); }
       else{pedirCodigoAcceso(c.id,'curso',c.nombre,c.precio);}
     };
     if(adminModeActive){agregarBotonesEditar(card,c,'serie');}
@@ -4321,12 +4378,28 @@ function getSessionId() {
   return sid;
 }
 
+function diasRestantesVela(createdAt) {
+  var creada = new Date(createdAt);
+  var caduca = new Date(creada); caduca.setDate(caduca.getDate() + 7);
+  var hoy = new Date();
+  var msRestantes = caduca - hoy;
+  var diasRestantes = Math.ceil(msRestantes / (1000*60*60*24));
+  if (diasRestantes <= 0) return 'Caduca hoy';
+  if (diasRestantes === 1) return 'Caduca mañana';
+  return 'Caduca en ' + diasRestantes + ' días';
+}
+
 async function loadVelas() {
   var cont = document.getElementById('velasLista'); if (!cont) return;
   if (!sb) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px">Supabase no configurado</p>'; return; }
   cont.innerHTML = '<div class="spin">Cargando…</div>';
   try {
-    var r = await sb.from('velas').select('*').eq('activa', true).order('tipo', {ascending:false}).order('created_at', { ascending: false }).limit(50);
+    // Velas normales: solo de los últimos 7 días. Perpetuas: siempre, sin límite de fecha.
+    var hace7dias = new Date(); hace7dias.setDate(hace7dias.getDate() - 7);
+    var hace7diasISO = hace7dias.toISOString();
+    var r = await sb.from('velas').select('*').eq('activa', true)
+      .or('tipo.eq.perpetua,created_at.gte.' + hace7diasISO)
+      .order('tipo', {ascending:false}).order('created_at', { ascending: false }).limit(50);
     var data = r.data || [];
     if (!data.length) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px;text-align:center">Sé el primero en encender una vela 🕯️</p>'; return; }
     cont.innerHTML = '';
@@ -4340,9 +4413,10 @@ async function loadVelas() {
       icon.textContent = esPerpetua ? '✨🕯️' : '🕯️';
       var body = document.createElement('div');
       body.style.cssText = 'flex:1';
-      body.innerHTML = (esPerpetua ? '<span style="font-size:9px;font-weight:700;color:#a87b1f;text-transform:uppercase;letter-spacing:0.5px;background:#fef3da;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px">Vela Perpetua</span><br/>' : '')
+      body.innerHTML = (esPerpetua ? '<span style="font-size:9px;font-weight:700;color:#a87b1f;text-transform:uppercase;letter-spacing:0.5px;background:#fef3da;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px">✨ Vela Perpetua</span><br/>' : '')
         + '<p style="font-size:13px;color:var(--texto);line-height:1.5;margin-bottom:6px">' + esc(v.intencion) + '</p>'
-        + '<p style="font-size:11px;color:var(--gris)">— ' + esc(v.nombre || 'Anónimo') + ' · ' + new Date(v.created_at).toLocaleDateString('es') + '</p>';
+        + '<p style="font-size:11px;color:var(--gris)">— ' + esc(v.nombre || 'Anónimo') + ' · ' + new Date(v.created_at).toLocaleDateString('es') + '</p>'
+        + (!esPerpetua ? '<p style="font-size:10px;color:#b08968;margin-top:3px">🕯️ ' + diasRestantesVela(v.created_at) + '</p>' : '');
       var btnRow = document.createElement('div');
       btnRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px';
       var btnUnir = document.createElement('button');
@@ -4576,7 +4650,7 @@ async function loadAdmVelas() {
         + '<div style="flex:1">'
         + (esPerpetua ? '<span style="font-size:9px;font-weight:700;color:#a87b1f;background:#fef3da;padding:2px 6px;border-radius:4px">PERPETUA · '+(v.pagado?'Pagada':'Pendiente de pago')+'</span><br/>' : '')
         + '<p style="font-size:13px;color:var(--texto);margin-top:4px">' + esc(v.intencion) + '</p>'
-        + '<p style="font-size:11px;color:var(--gris);margin-top:4px">— ' + esc(v.nombre||'Anónimo') + ' · ' + new Date(v.created_at).toLocaleDateString('es') + ' · ' + (v.apoyos||0) + ' apoyos · ' + (v.activa?'✅ Visible':'🚫 Oculta') + '</p>'
+        + '<p style="font-size:11px;color:var(--gris);margin-top:4px">— ' + esc(v.nombre||'Anónimo') + ' · ' + new Date(v.created_at).toLocaleDateString('es') + ' · ' + (v.apoyos||0) + ' apoyos · ' + (v.activa?'✅ Visible':'🚫 Oculta') + (!esPerpetua ? ' · 🕯️ '+diasRestantesVela(v.created_at) : ' · ∞ No caduca') + '</p>'
         + '</div></div>';
       var btns = document.createElement('div');
       btns.style.cssText = 'display:flex;gap:6px;margin-top:8px';
@@ -4708,6 +4782,128 @@ async function saveLiturgico() {
   mo.classList.remove('open');
   toast(id ? 'Actualizado ✓' : 'Creado ✓');
   loadAdmLiturgico();
+}
+
+// ══ DETALLE SERIE/CURSO ══
+async function abrirSerieDetalle(s) {
+  document.getElementById('serieDetTitulo').textContent = (s.icono||'📺') + ' ' + s.nombre;
+  document.getElementById('serieDetDesc').textContent = s.descripcion || '';
+  var cont = document.getElementById('serieDetContenido');
+  cont.innerHTML = '<div class="spin">Cargando…</div>';
+  openMo('moSerieDetalle');
+  if (!sb) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris)">Supabase no configurado</p>'; return; }
+  try {
+    var r = await sb.from('videos').select('*').eq('curso_id', s.id).eq('activo', true).order('orden').order('created_at');
+    var items = r.data || [];
+    if (!items.length) {
+      cont.innerHTML = '<p style="font-size:12px;color:var(--gris);padding:14px 0;text-align:center">Aún no hay contenido en esta serie.' + (s.url_playlist ? '<br/><br/><a href="'+s.url_playlist+'" target="_blank" style="color:var(--azul)">Ver playlist completa en YouTube →</a>' : '') + '</p>';
+      return;
+    }
+    cont.innerHTML = '';
+    items.forEach(function(v, i) {
+      var ico = {youtube:'▶️',video:'🎬',audio:'🎵',imagen:'🖼️',pdf:'📄',texto:'📝',enlace:'🔗'};
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--borde);cursor:pointer';
+      row.innerHTML = '<span style="font-size:22px;flex-shrink:0">' + (ico[v.tipo]||'▶️') + '</span>'
+        + '<div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--azul-os)">' + (i+1) + '. ' + esc(v.titulo) + '</p>'
+        + (v.descripcion ? '<p style="font-size:11px;color:var(--gris);margin-top:2px">' + esc(v.descripcion) + '</p>' : '') + '</div>'
+        + '<span style="color:var(--gris);font-size:16px">›</span>';
+      row.onclick = (function(vv) { return function() {
+        if (vv.tipo === 'texto') { alert(vv.titulo + '\n\n' + (vv.contenido||'')); return; }
+        if (vv.tipo === 'pdf' || vv.tipo === 'enlace' || vv.tipo === 'imagen') { window.open(vv.url, '_blank'); return; }
+        playVid(vv.titulo, vv.url||'', vv.descripcion||'', vv.tipo||'youtube', vv.id);
+      }; })(v);
+      cont.appendChild(row);
+    });
+  } catch(e) { cont.innerHTML = '<p style="font-size:12px;color:var(--gris)">Error al cargar contenido</p>'; }
+}
+
+// ══ CELEBRACIÓN VISUAL (confeti elegante) ══
+function celebrar() {
+  var canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:none';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+  var colores = ['#1A3A6E', '#1E7BC4', '#FFD700', '#ffffff', '#a87b1f'];
+  var particulas = [];
+  var cantidad = 70;
+  for (var i = 0; i < cantidad; i++) {
+    particulas.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 60,
+      y: canvas.height * 0.35,
+      vx: (Math.random() - 0.5) * 9,
+      vy: Math.random() * -9 - 4,
+      size: Math.random() * 6 + 4,
+      color: colores[Math.floor(Math.random() * colores.length)],
+      rotacion: Math.random() * 360,
+      vRot: (Math.random() - 0.5) * 12,
+      gravedad: 0.22,
+      vida: 1
+    });
+  }
+  var inicio = Date.now();
+  function frame() {
+    var transcurrido = Date.now() - inicio;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var activas = false;
+    particulas.forEach(function(p) {
+      if (p.vida <= 0) return;
+      activas = true;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravedad;
+      p.rotacion += p.vRot;
+      if (transcurrido > 1200) p.vida -= 0.025;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.vida);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotacion * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+      ctx.restore();
+    });
+    if (activas && transcurrido < 4000) {
+      requestAnimationFrame(frame);
+    } else {
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// ══ CONTADOR EN VIVO DE COMUNIDAD ══
+async function loadLiveCounter() {
+  var el = document.getElementById('liveCounterText');
+  if (!el || !sb) return;
+  try {
+    var hace7dias = new Date(); hace7dias.setDate(hace7dias.getDate() - 7);
+    var hace7diasISO = hace7dias.toISOString();
+
+    var [velasR, peticionesR, progresoR] = await Promise.all([
+      sb.from('velas').select('id', { count: 'exact', head: true }).gte('created_at', hace7diasISO),
+      sb.from('peticiones_oracion').select('id', { count: 'exact', head: true }).gte('created_at', hace7diasISO),
+      sb.from('progreso_itinerario').select('id', { count: 'exact', head: true }).gte('created_at', hace7diasISO)
+    ]);
+
+    var velas = velasR.count || 0;
+    var peticiones = peticionesR.count || 0;
+    var oraciones = progresoR.count || 0;
+    var total = velas + peticiones + oraciones;
+
+    if (total === 0) {
+      el.textContent = '🙏 Sé el primero en unirte a la comunidad esta semana';
+      return;
+    }
+    var partes = [];
+    if (velas > 0) partes.push('🕯️ ' + velas + ' vela' + (velas===1?'':'s'));
+    if (peticiones > 0) partes.push('🙏 ' + peticiones + ' petición' + (peticiones===1?'':'es'));
+    if (oraciones > 0) partes.push('✅ ' + oraciones + ' oraci' + (oraciones===1?'ón':'ones'));
+    el.textContent = partes.join(' · ') + ' esta semana';
+  } catch (e) {
+    el.textContent = '🙏 Únete a nuestra comunidad de oración';
+  }
 }
 
 // ── STUBS ──
@@ -4942,6 +5138,9 @@ function openMV(v) {
   g('fvd').value=v?v.descripcion||'':''; g('fvu').value=v?v.url||'':'';
   g('fvTexto').value=v?v.contenido||'':''; g('fvs').value=v?v.seccion||'testimonios':'testimonios';
   g('fvc').value=v?v.categoria||'':'';
+  toggleFvCursoSelect().then(function(){
+    if (v && v.curso_id) { var sel = document.getElementById('fvCursoId'); if(sel) sel.value = v.curso_id; }
+  });
   var dest=document.getElementById('fvdest'); if(dest) dest.checked=v?v.destacado||false:false;
   // reset tipo buttons
   document.querySelectorAll('#tiposBtns .tbtn').forEach(function(b){b.classList.remove('on');});
@@ -4974,12 +5173,16 @@ async function saveVideo() {
       } catch(e) { return toast('Error al subir: '+e.message); }
     }
   }
+  var seccionSel = (document.getElementById('fvs')||{value:'testimonios'}).value;
+  var cursoIdSel = (document.getElementById('fvCursoId')||{value:''}).value;
+  if (seccionSel === 'curso' && !cursoIdSel) return toast('Selecciona a qué serie/curso pertenece');
   var payload={
     titulo:titulo, url:url||null,
     descripcion:(document.getElementById('fvd')||{value:''}).value.trim(),
     contenido:(document.getElementById('fvTexto')||{value:''}).value.trim(),
     tipo:tipo,
-    seccion:(document.getElementById('fvs')||{value:'testimonios'}).value,
+    seccion:seccionSel,
+    curso_id: seccionSel === 'curso' ? cursoIdSel : null,
     categoria:(document.getElementById('fvc')||{value:''}).value,
     destacado:((document.getElementById('fvdest')||{}).checked)||false,
     activo:true
@@ -5067,6 +5270,29 @@ function setModalTitle(elId,action,label,moId){
 }
 
 
+
+async function toggleFvCursoSelect() {
+  var sec = (document.getElementById('fvs')||{value:''}).value;
+  var wrap = document.getElementById('fvCursoWrap');
+  if (!wrap) return;
+  if (sec === 'curso') {
+    wrap.classList.remove('hid');
+    var sel = document.getElementById('fvCursoId');
+    if (sel && sel.options.length <= 1 && sb) {
+      try {
+        var r = await sb.from('cursos').select('id,nombre,tipo').order('nombre');
+        (r.data||[]).forEach(function(c) {
+          var opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = (c.tipo==='curso'?'📚 ':'📺 ') + c.nombre;
+          sel.appendChild(opt);
+        });
+      } catch(e) {}
+    }
+  } else {
+    wrap.classList.add('hid');
+  }
+}
 
 function setTipo(el, t) {
   document.querySelectorAll('#tiposBtns .tbtn').forEach(function(b){b.classList.remove('on');});
@@ -5698,6 +5924,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // Load initial data
   loadEvDia();
   loadNoticias();
+  loadLiveCounter();
   renderLinks(null);   // Show links immediately with defaults
   renderEvRecursos(null); // Show evangelizacion recursos
   initOneSignal();
